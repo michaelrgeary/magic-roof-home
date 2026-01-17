@@ -160,9 +160,11 @@ export type Database = {
         Row: {
           config: Json
           created_at: string
+          default_language: string | null
           domain: string | null
           domain_type: Database["public"]["Enums"]["domain_type"] | null
           id: string
+          languages: string[] | null
           published: boolean
           published_at: string | null
           template: string
@@ -172,9 +174,11 @@ export type Database = {
         Insert: {
           config?: Json
           created_at?: string
+          default_language?: string | null
           domain?: string | null
           domain_type?: Database["public"]["Enums"]["domain_type"] | null
           id?: string
+          languages?: string[] | null
           published?: boolean
           published_at?: string | null
           template: string
@@ -184,9 +188,11 @@ export type Database = {
         Update: {
           config?: Json
           created_at?: string
+          default_language?: string | null
           domain?: string | null
           domain_type?: Database["public"]["Enums"]["domain_type"] | null
           id?: string
+          languages?: string[] | null
           published?: boolean
           published_at?: string | null
           template?: string
