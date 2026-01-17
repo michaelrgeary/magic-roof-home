@@ -6,14 +6,25 @@ import { useSites } from "@/hooks/useSites";
 import { useAllLeads } from "@/hooks/useLeads";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, FileText, Users, TrendingUp, Plus, Settings, Loader2, ExternalLink, Edit } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Globe, FileText, Users, TrendingUp, Plus, Settings, Loader2, ExternalLink, Edit, Rocket, EyeOff } from "lucide-react";
 import type { SiteConfig } from "@/components/templates/types";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut, isAuthenticated } = useAuth();
   const { profile, isLoading: profileLoading } = useProfile();
-  const { sites, isLoading: sitesLoading } = useSites();
+  const { sites, isLoading: sitesLoading, publishSite } = useSites();
   const { data: allLeads, isLoading: leadsLoading } = useAllLeads();
 
   const isLoading = profileLoading || sitesLoading || leadsLoading;
@@ -33,6 +44,10 @@ export default function Dashboard() {
       return (config as SiteConfig).businessName || "Untitled Site";
     }
     return "Untitled Site";
+  };
+
+  const handleUnpublish = async (siteId: string) => {
+    await publishSite.mutateAsync({ siteId, publish: false });
   };
 
   return (
@@ -124,17 +139,29 @@ export default function Dashboard() {
                       <CardTitle className="text-base">
                         {getSiteBusinessName(site.config)}
                       </CardTitle>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
+                      <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
                         site.published 
                           ? "bg-green-100 text-green-700" 
                           : "bg-muted text-muted-foreground"
                       }`}>
-                        {site.published ? "Published" : "Draft"}
+                        {site.published ? (
+                          <>
+                            <Globe className="h-3 w-3" />
+                            Live
+                          </>
+                        ) : (
+                          "Draft"
+                        )}
                       </span>
                     </div>
                     <CardDescription className="capitalize">
                       {site.template.replace("-", " ")} template
                     </CardDescription>
+                    {site.published && site.domain && (
+                      <p className="text-xs text-primary truncate">
+                        /site/{site.domain}
+                      </p>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-2">
@@ -147,9 +174,46 @@ export default function Dashboard() {
                         <Edit className="mr-2 h-3 w-3" />
                         Edit
                       </Button>
-                      {site.published && (
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-4 w-4" />
+                      {site.published ? (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            asChild
+                          >
+                            <a href={`/site/${site.domain}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <EyeOff className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Unpublish Site?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will take your site offline. Visitors will no longer be able to access it at the current URL. You can republish at any time.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleUnpublish(site.id)}>
+                                  Unpublish
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      ) : (
+                        <Button 
+                          size="sm"
+                          onClick={() => navigate(`/publish/${site.id}`)}
+                        >
+                          <Rocket className="mr-2 h-3 w-3" />
+                          Publish
                         </Button>
                       )}
                     </div>
