@@ -4,6 +4,7 @@ import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
 import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
+import { TemplateGallery } from "@/components/gallery/TemplateGallery";
 
 interface TrustedLocalProps {
   config: SiteConfig;
@@ -236,25 +237,21 @@ export default function TrustedLocal({ config, siteId, isPreview }: TrustedLocal
       )}
 
       {/* Gallery */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-              Our Recent Projects
-            </h2>
-            <p className="text-stone-600">
-              See the quality work we've done for families in your neighborhood
-            </p>
+      {config.gallery && config.gallery.length > 0 && config.gallery.some(g => g.before || g.after) && (
+        <section className="py-16 md:py-20">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
+                Our Recent Projects
+              </h2>
+              <p className="text-stone-600">
+                See the quality work we've done for families in your neighborhood
+              </p>
+            </div>
+            <TemplateGallery items={config.gallery} variant="trusted" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(config.gallery || [1, 2, 3]).map((_, i) => (
-              <div key={i} className="bg-stone-200 aspect-video rounded-xl flex items-center justify-center overflow-hidden">
-                <span className="text-stone-400">Before / After</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Contact */}
       <section id="contact" className="py-16 md:py-20 bg-green-50">
