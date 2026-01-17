@@ -31,10 +31,10 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Home
           </Link>
-          <Link to="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Features
-          </Link>
-          <Link to="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </a>
+          <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Pricing
           </Link>
           
@@ -97,15 +97,15 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
             >
               Home
             </Link>
-            <Link 
-              to="#features" 
+            <a 
+              href="/#features" 
               className="text-sm font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Features
-            </Link>
+            </a>
             <Link 
-              to="#pricing" 
+              to="/pricing" 
               className="text-sm font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >

@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     question: "Do you offer refunds?",
-    answer: "We offer a 14-day money-back guarantee. If you're not satisfied within the first 14 days, contact us for a full refund.",
+    answer: "If you're not satisfied, contact us and we'll work with you to resolve any issues or provide a refund based on your situation.",
   },
   {
     question: "What payment methods do you accept?",
@@ -66,7 +66,7 @@ export default function Pricing() {
             </p>
             <Button asChild size="lg" className="glow-primary">
               <Link to="/auth">
-                Get Started Free
+                Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
