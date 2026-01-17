@@ -14,6 +14,7 @@ import PublishSite from "./pages/PublishSite";
 import PublicSite from "./pages/PublicSite";
 import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
+import Leads from "./pages/Leads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Billing />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/leads"
+              element={
+                <ProtectedRoute>
+                  <Leads />
                 </ProtectedRoute>
               }
             />
