@@ -4,15 +4,27 @@ import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
 import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
+import { BlogSection } from "./sections/BlogSection";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  meta_description: string | null;
+  published_at: string | null;
+  created_at: string;
+}
 
 interface ModernEdgeProps {
   config: SiteConfig;
   siteId?: string;
+  siteSlug?: string;
   isPreview?: boolean;
+  blogs?: BlogPost[];
 }
 
-export default function ModernEdge({ config, siteId, isPreview }: ModernEdgeProps) {
+export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs }: ModernEdgeProps) {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* Header */}
@@ -264,6 +276,11 @@ export default function ModernEdge({ config, siteId, isPreview }: ModernEdgeProp
             </div>
           </div>
         </section>
+      )}
+
+      {/* Blog Section */}
+      {siteSlug && blogs && blogs.length > 0 && (
+        <BlogSection blogs={blogs} siteSlug={siteSlug} variant="modern" />
       )}
 
       {/* Contact */}

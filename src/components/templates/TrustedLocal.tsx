@@ -4,15 +4,27 @@ import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
 import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
+import { BlogSection } from "./sections/BlogSection";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  meta_description: string | null;
+  published_at: string | null;
+  created_at: string;
+}
 
 interface TrustedLocalProps {
   config: SiteConfig;
   siteId?: string;
+  siteSlug?: string;
   isPreview?: boolean;
+  blogs?: BlogPost[];
 }
 
-export default function TrustedLocal({ config, siteId, isPreview }: TrustedLocalProps) {
+export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blogs }: TrustedLocalProps) {
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       {/* Header */}
@@ -268,6 +280,11 @@ export default function TrustedLocal({ config, siteId, isPreview }: TrustedLocal
             <TemplateGallery items={config.gallery} variant="trusted" />
           </div>
         </section>
+      )}
+
+      {/* Blog Section */}
+      {siteSlug && blogs && blogs.length > 0 && (
+        <BlogSection blogs={blogs} siteSlug={siteSlug} variant="trusted" />
       )}
 
       {/* Contact */}
