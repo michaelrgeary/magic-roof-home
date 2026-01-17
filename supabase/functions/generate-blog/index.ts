@@ -90,22 +90,38 @@ serve(async (req) => {
   }
 
   try {
-    // Extract user ID from auth token for rate limiting
+    // REQUIRE authentication - no anonymous access
     const authHeader = req.headers.get("authorization");
-    let userId = "anonymous";
-    
-    if (authHeader) {
-      try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user } } = await supabase.auth.getUser(token);
-        if (user) userId = user.id;
-      } catch (e) {
-        console.log("Auth extraction failed, using anonymous rate limit");
-      }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("Authentication required - no auth header provided");
+      return new Response(
+        JSON.stringify({ error: "Authentication required. Please log in to generate blog content." }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
     }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log("Authentication failed:", authError?.message || "Invalid token");
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired authentication token. Please log in again." }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
+    const userId = user.id;
+    console.log("User authenticated for blog generation:", userId);
 
     // Rate limiting by user ID (only for generate_post action)
     const body = await req.json();

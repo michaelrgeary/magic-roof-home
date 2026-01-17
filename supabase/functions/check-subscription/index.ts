@@ -13,6 +13,29 @@ const getCorsHeaders = (origin: string | null) => ({
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 });
 
+// Rate limiting: 30 requests per minute per user
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 30;
+const RATE_WINDOW = 60 * 1000;
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; retryAfter?: number } {
+  const now = Date.now();
+  const userLimit = rateLimitStore.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_WINDOW });
+    return { allowed: true, remaining: RATE_LIMIT - 1 };
+  }
+
+  if (userLimit.count >= RATE_LIMIT) {
+    const retryAfter = Math.ceil((userLimit.resetTime - now) / 1000);
+    return { allowed: false, remaining: 0, retryAfter };
+  }
+
+  userLimit.count++;
+  return { allowed: true, remaining: RATE_LIMIT - userLimit.count };
+}
+
 // Product IDs for plans
 const PRODUCT_IDS = {
   basic: "prod_To2R4ld1pyoSQd",
@@ -53,6 +76,20 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Rate limit check
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      logStep("Rate limit exceeded", { userId: user.id });
+      return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "Retry-After": String(rateLimit.retryAfter || 60),
+        },
+        status: 429,
+      });
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
