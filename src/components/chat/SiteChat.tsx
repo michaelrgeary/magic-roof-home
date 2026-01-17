@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2, Bot, User } from "lucide-react";
+import { Send, Loader2, Bot, User, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { SiteConfig } from "@/components/templates/types";
 
@@ -10,25 +10,44 @@ interface Message {
   content: string;
 }
 
-interface OnboardingChatProps {
+interface SiteChatProps {
+  mode: "onboarding" | "edit";
+  currentConfig?: Partial<SiteConfig>;
   onConfigUpdate: (config: Partial<SiteConfig>) => void;
+  onChangesDetected?: (changes: string[]) => void;
   onComplete: () => void;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hey! Let's get your roofing website set up. What's your company name?",
-    },
-  ]);
+export function SiteChat({ mode, currentConfig, onConfigUpdate, onChangesDetected, onComplete }: SiteChatProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [changes, setChanges] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Set initial message based on mode
+  useEffect(() => {
+    if (mode === "onboarding") {
+      setMessages([
+        {
+          role: "assistant",
+          content: "Hey! Let's get your roofing website set up. What's your company name?",
+        },
+      ]);
+    } else if (mode === "edit" && currentConfig) {
+      const businessName = currentConfig.businessName || "your site";
+      setMessages([
+        {
+          role: "assistant",
+          content: `Welcome back! I'm here to help you update ${businessName}. What would you like to change? You can update your headline, services, contact info, or anything else.`,
+        },
+      ]);
+    }
+  }, [mode, currentConfig?.businessName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,8 +71,23 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
     return null;
   };
 
+  const extractChanges = (text: string): string[] => {
+    const match = text.match(/<changes>([\s\S]*?)<\/changes>/);
+    if (match) {
+      const changesText = match[1].trim();
+      return changesText
+        .split("\n")
+        .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+        .filter((line) => line.length > 0);
+    }
+    return [];
+  };
+
   const cleanMessageContent = (text: string): string => {
-    return text.replace(/<site_config>[\s\S]*?<\/site_config>/g, "").trim();
+    return text
+      .replace(/<site_config>[\s\S]*?<\/site_config>/g, "")
+      .replace(/<changes>[\s\S]*?<\/changes>/g, "")
+      .trim();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +114,8 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
             role: m.role,
             content: m.content,
           })),
+          mode,
+          currentConfig: mode === "edit" ? currentConfig : undefined,
         }),
       });
 
@@ -144,6 +180,12 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
               if (config) {
                 onConfigUpdate(config);
                 setIsComplete(true);
+                
+                const extractedChanges = extractChanges(assistantContent);
+                if (extractedChanges.length > 0) {
+                  setChanges(extractedChanges);
+                  onChangesDetected?.(extractedChanges);
+                }
               }
             }
           } catch {
@@ -181,6 +223,12 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
               if (config) {
                 onConfigUpdate(config);
                 setIsComplete(true);
+                
+                const extractedChanges = extractChanges(assistantContent);
+                if (extractedChanges.length > 0) {
+                  setChanges(extractedChanges);
+                  onChangesDetected?.(extractedChanges);
+                }
               }
             }
           } catch {
@@ -243,11 +291,34 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Changes summary */}
+      {isComplete && changes.length > 0 && (
+        <div className="mx-4 mb-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <div className="flex items-center gap-2 text-sm font-medium text-primary mb-2">
+            <Sparkles className="w-4 h-4" />
+            <span>Changes ready to save:</span>
+          </div>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            {changes.slice(0, 5).map((change, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>{change}</span>
+              </li>
+            ))}
+            {changes.length > 5 && (
+              <li className="text-xs text-muted-foreground">
+                +{changes.length - 5} more changes
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
       {/* Complete button */}
       {isComplete && (
         <div className="p-4 border-t">
           <Button onClick={onComplete} className="w-full" size="lg">
-            Preview & Save Your Site
+            {mode === "edit" ? "Save Changes" : "Preview & Save Your Site"}
           </Button>
         </div>
       )}
@@ -259,7 +330,7 @@ export function OnboardingChat({ onConfigUpdate, onComplete }: OnboardingChatPro
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your answer..."
+            placeholder={mode === "edit" ? "Tell me what to change..." : "Type your answer..."}
             disabled={isLoading}
             className="flex-1"
           />
