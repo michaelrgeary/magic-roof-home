@@ -4,6 +4,7 @@ import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
 import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
+import { TemplateGallery } from "@/components/gallery/TemplateGallery";
 
 interface ClassicProProps {
   config: SiteConfig;
@@ -204,20 +205,16 @@ export default function ClassicPro({ config, siteId, isPreview }: ClassicProProp
       )}
 
       {/* Gallery */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-8 text-center">
-            Our Work
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(config.gallery || [1, 2, 3]).map((_, i) => (
-              <div key={i} className="bg-slate-200 aspect-video rounded-sm flex items-center justify-center">
-                <span className="text-slate-400">Before / After</span>
-              </div>
-            ))}
+      {config.gallery && config.gallery.length > 0 && config.gallery.some(g => g.before || g.after) && (
+        <section className="py-16 md:py-20">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-8 text-center">
+              Our Work
+            </h2>
+            <TemplateGallery items={config.gallery} variant="classic" />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Testimonials */}
       {config.testimonials && config.testimonials.length > 0 && (

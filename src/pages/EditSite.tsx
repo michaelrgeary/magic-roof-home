@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SiteChat } from "@/components/chat/SiteChat";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
+import { GalleryManager } from "@/components/gallery/GalleryManager";
 import { sampleConfig, type SiteConfig } from "@/components/templates/types";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSite, useSites } from "@/hooks/useSites";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, ArrowLeft, Check, Loader2, X, AlertCircle } from "lucide-react";
+import { Home, ArrowLeft, Check, Loader2, X, AlertCircle, MessageSquare, Image } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -31,6 +33,7 @@ export default function EditSite() {
   const [hasChanges, setHasChanges] = useState(false);
   const [changes, setChanges] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"chat" | "gallery">("chat");
 
   // Load site data
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function EditSite() {
     }
   }, [site]);
 
-  // Merge with sample config for preview
+  // Merge with sample config for preview (but not gallery - use actual)
   const previewConfig: SiteConfig = {
     ...sampleConfig,
     ...config,
@@ -50,6 +53,8 @@ export default function EditSite() {
     testimonials: config.testimonials || sampleConfig.testimonials,
     credentials: config.credentials || sampleConfig.credentials,
     serviceAreas: config.serviceAreas || sampleConfig.serviceAreas,
+    gallery: config.gallery || [], // Use actual gallery, no sample
+    logo: config.logo,
   };
 
   const handleConfigUpdate = (newConfig: Partial<SiteConfig>) => {
@@ -153,15 +158,38 @@ export default function EditSite() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Chat side */}
+        {/* Edit side */}
         <div className="lg:w-[400px] xl:w-[480px] border-r flex flex-col h-[50vh] lg:h-[calc(100vh-57px)]">
-          <SiteChat
-            mode="edit"
-            currentConfig={originalConfig}
-            onConfigUpdate={handleConfigUpdate}
-            onChangesDetected={handleChangesDetected}
-            onComplete={handleSave}
-          />
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "gallery")} className="flex flex-col h-full">
+            <TabsList className="grid w-full grid-cols-2 m-2" style={{ width: "calc(100% - 16px)" }}>
+              <TabsTrigger value="chat" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="gallery" className="gap-2">
+                <Image className="h-4 w-4" />
+                Gallery
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="chat" className="flex-1 overflow-hidden m-0 mt-0">
+              <SiteChat
+                mode="edit"
+                currentConfig={originalConfig}
+                onConfigUpdate={handleConfigUpdate}
+                onChangesDetected={handleChangesDetected}
+                onComplete={handleSave}
+              />
+            </TabsContent>
+            
+            <TabsContent value="gallery" className="flex-1 overflow-auto m-0 p-4">
+              <GalleryManager
+                siteId={siteId!}
+                config={config}
+                onConfigChange={handleConfigUpdate}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Preview side */}

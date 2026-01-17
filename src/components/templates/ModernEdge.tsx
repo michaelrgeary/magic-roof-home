@@ -4,6 +4,7 @@ import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
 import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
+import { TemplateGallery } from "@/components/gallery/TemplateGallery";
 
 interface ModernEdgeProps {
   config: SiteConfig;
@@ -208,25 +209,19 @@ export default function ModernEdge({ config, siteId, isPreview }: ModernEdgeProp
       )}
 
       {/* Gallery */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
-            Portfolio
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-            Recent Work
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
-            {(config.gallery || [1, 2, 3]).map((_, i) => (
-              <div key={i} className="bg-zinc-900 aspect-square flex items-center justify-center group cursor-pointer overflow-hidden">
-                <span className="text-zinc-600 uppercase tracking-wider group-hover:scale-110 transition-transform">
-                  Project {i + 1}
-                </span>
-              </div>
-            ))}
+      {config.gallery && config.gallery.length > 0 && config.gallery.some(g => g.before || g.after) && (
+        <section className="py-20 md:py-28">
+          <div className="container mx-auto px-4">
+            <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
+              Portfolio
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
+              Recent Work
+            </h2>
+            <TemplateGallery items={config.gallery} variant="modern" />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Testimonials */}
       {config.testimonials && config.testimonials.length > 0 && (
