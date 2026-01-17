@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { useSites } from "@/hooks/useSites";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSlug, generateUniqueSlug } from "@/lib/slugify";
+import { STRIPE_PLANS } from "@/lib/stripe-plans";
 import type { SiteConfig } from "@/components/templates/types";
 import { 
   CheckCircle2, 
@@ -17,7 +19,9 @@ import {
   Copy,
   ArrowLeft,
   Globe,
-  Rocket
+  Rocket,
+  CreditCard,
+  ArrowUpRight
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,12 +49,19 @@ export function PublishFlow({
   onPublishComplete 
 }: PublishFlowProps) {
   const navigate = useNavigate();
-  const { publishSite, updateSite } = useSites();
+  const { sites, publishSite, updateSite } = useSites();
+  const { subscription, isLoading: subLoading, isActive, isPro } = useSubscription();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployProgress, setDeployProgress] = useState(0);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(
     isPublished && currentDomain ? `/site/${currentDomain}` : null
   );
+
+  // Check subscription limits
+  const publishedSitesCount = sites.filter(s => s.published).length;
+  const currentPlan = isActive ? subscription?.plan : null;
+  const siteLimit = currentPlan ? STRIPE_PLANS[currentPlan].siteLimit : 0;
+  const canPublish = isActive && (isPro || publishedSitesCount < siteLimit || isPublished);
 
   // Validation
   const validateSite = (): ValidationError[] => {
@@ -95,7 +106,7 @@ export function PublishFlow({
   const isValid = validationErrors.length === 0;
 
   const handlePublish = async () => {
-    if (!isValid) return;
+    if (!isValid || !canPublish) return;
 
     setIsDeploying(true);
     setDeployProgress(10);
@@ -158,6 +169,123 @@ export function PublishFlow({
     }
   };
 
+  // Loading state
+  if (subLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // No subscription - show upgrade prompt
+  if (!isActive) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+            <CreditCard className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Subscription Required</h2>
+          <p className="text-muted-foreground">
+            You need an active subscription to publish your site
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Choose a Plan</CardTitle>
+            <CardDescription>
+              Select a plan to publish your roofing website
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4">
+              <div className="p-4 border rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Basic</span>
+                  <span className="font-bold">${STRIPE_PLANS.basic.price}/mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground">1 website included</p>
+              </div>
+              <div className="p-4 border-2 border-primary rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Pro</span>
+                  <span className="font-bold">${STRIPE_PLANS.pro.price}/mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Unlimited websites + custom domains</p>
+              </div>
+            </div>
+            <Button className="w-full glow-primary" asChild>
+              <Link to="/pricing">
+                View Plans
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Button variant="outline" className="w-full" onClick={() => navigate(`/edit/${siteId}`)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Editor
+        </Button>
+      </div>
+    );
+  }
+
+  // At site limit (Basic plan)
+  if (!canPublish && !isPublished) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
+            <AlertCircle className="h-8 w-8 text-yellow-600" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Site Limit Reached</h2>
+          <p className="text-muted-foreground">
+            Your Basic plan allows only {siteLimit} published site
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Upgrade to Pro</CardTitle>
+            <CardDescription>
+              Publish unlimited sites with the Pro plan
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                Unlimited roofing websites
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                Custom domain support
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                Priority support
+              </li>
+            </ul>
+            <Button className="w-full glow-primary" asChild>
+              <Link to="/billing">
+                Upgrade to Pro - ${STRIPE_PLANS.pro.price}/mo
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Button variant="outline" className="w-full" onClick={() => navigate(`/edit/${siteId}`)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Editor
+        </Button>
+      </div>
+    );
+  }
+
   // Published state
   if (publishedUrl && isPublished) {
     const fullUrl = `${window.location.origin}${publishedUrl}`;
@@ -212,14 +340,22 @@ export function PublishFlow({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground mb-2">
-                Custom domains are coming soon with Pro plan
-              </p>
-              <Button variant="outline" size="sm" disabled>
-                Upgrade to Pro
-              </Button>
-            </div>
+            {isPro ? (
+              <div className="p-4 bg-primary/5 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Custom domains coming soon!
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Custom domains available with Pro plan
+                </p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/billing">Upgrade to Pro</Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -345,9 +481,11 @@ export function PublishFlow({
               {window.location.origin}/site/{generateSlug(config.businessName || "your-company")}
             </code>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            * Custom domains available with Pro plan
-          </p>
+          {!isPro && (
+            <p className="text-xs text-muted-foreground mt-2">
+              * Custom domains available with Pro plan
+            </p>
+          )}
         </CardContent>
       </Card>
 

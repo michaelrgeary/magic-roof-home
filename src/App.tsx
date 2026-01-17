@@ -12,6 +12,8 @@ import Onboarding from "./pages/Onboarding";
 import EditSite from "./pages/EditSite";
 import PublishSite from "./pages/PublishSite";
 import PublicSite from "./pages/PublicSite";
+import Pricing from "./pages/Pricing";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route
               path="/dashboard"
               element={
@@ -55,6 +58,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <PublishSite />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/billing"
+              element={
+                <ProtectedRoute>
+                  <Billing />
                 </ProtectedRoute>
               }
             />
