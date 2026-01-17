@@ -79,13 +79,15 @@ export default function Index() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link to={isAuthenticated ? "/dashboard" : "/auth"}>
                 <Button size="lg" variant="secondary" className="w-full sm:w-auto text-lg px-8">
-                  {isAuthenticated ? "Go to Dashboard" : "Start Free Trial"}
+                  {isAuthenticated ? "Go to Dashboard" : "Get Started"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-                View Templates
-              </Button>
+              <a href="/#features">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto text-lg px-8">
+                  View Templates
+                </Button>
+              </a>
             </div>
           </div>
         </div>
@@ -154,14 +156,14 @@ export default function Index() {
                   Get Started Today
                 </p>
                 <p className="text-4xl md:text-5xl font-bold">
-                  14 Days Free
+                  Plans from $29/mo
                 </p>
                 <p className="text-muted-foreground">
-                  No credit card required
+                  Cancel anytime
                 </p>
                 <Link to={isAuthenticated ? "/dashboard" : "/auth"}>
                   <Button size="lg" className="w-full">
-                    {isAuthenticated ? "Go to Dashboard" : "Start Your Free Trial"}
+                    {isAuthenticated ? "Go to Dashboard" : "Get Started"}
                   </Button>
                 </Link>
               </div>
@@ -181,7 +183,7 @@ export default function Index() {
           </p>
           <Link to={isAuthenticated ? "/dashboard" : "/auth"}>
             <Button size="lg" className="text-lg px-8">
-              {isAuthenticated ? "Go to Dashboard" : "Get Started Free"}
+              {isAuthenticated ? "Go to Dashboard" : "Get Started"}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
