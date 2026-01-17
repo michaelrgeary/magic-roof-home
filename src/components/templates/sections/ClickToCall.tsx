@@ -17,7 +17,7 @@ export function ClickToCall({ phone, variant = "classic" }: ClickToCallProps) {
   return (
     <a
       href={`tel:${cleanPhone}`}
-      className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold transition-all md:hidden ${styles[variant]}`}
+      className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-5 py-4 rounded-full font-semibold transition-all md:hidden min-h-[56px] safe-area-inset ${styles[variant]}`}
       aria-label={`Call ${phone}`}
     >
       <Phone className="h-5 w-5" />

@@ -94,10 +94,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
           placeholder="Your name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className={inputClasses[variant]}
+          className={`min-h-[44px] ${inputClasses[variant]} ${errors.name ? "border-red-500" : ""}`}
           disabled={submitLead.isPending}
+          aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? "name-error" : undefined}
         />
-        {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+        {errors.name && <p id="name-error" className="text-sm text-red-500">{errors.name}</p>}
       </div>
 
       <div className="space-y-2">
@@ -110,10 +112,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
           placeholder="(555) 123-4567"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className={inputClasses[variant]}
+          className={`min-h-[44px] ${inputClasses[variant]} ${errors.phone ? "border-red-500" : ""}`}
           disabled={submitLead.isPending}
+          aria-invalid={!!errors.phone}
+          aria-describedby={errors.phone ? "phone-error" : undefined}
         />
-        {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+        {errors.phone && <p id="phone-error" className="text-sm text-red-500">{errors.phone}</p>}
       </div>
 
       <div className="space-y-2">
@@ -126,10 +130,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
           placeholder="you@example.com"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className={inputClasses[variant]}
+          className={`min-h-[44px] ${inputClasses[variant]} ${errors.email ? "border-red-500" : ""}`}
           disabled={submitLead.isPending}
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+        {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email}</p>}
       </div>
 
       <div className="space-y-2">
@@ -141,15 +147,17 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
           placeholder="Tell us about your roofing needs..."
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className={`min-h-[100px] ${inputClasses[variant]}`}
+          className={`min-h-[100px] ${inputClasses[variant]} ${errors.message ? "border-red-500" : ""}`}
           disabled={submitLead.isPending}
+          aria-invalid={!!errors.message}
+          aria-describedby={errors.message ? "message-error" : undefined}
         />
-        {errors.message && <p className="text-sm text-red-500">{errors.message}</p>}
+        {errors.message && <p id="message-error" className="text-sm text-red-500">{errors.message}</p>}
       </div>
 
       <Button
         type="submit"
-        className={`w-full ${buttonClasses[variant]}`}
+        className={`w-full min-h-[48px] ${buttonClasses[variant]}`}
         disabled={submitLead.isPending}
       >
         {submitLead.isPending ? (
