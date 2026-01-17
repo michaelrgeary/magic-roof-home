@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
@@ -10,6 +11,43 @@ const getCorsHeaders = (origin: string | null) => ({
   "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin || "") ? origin! : ALLOWED_ORIGINS[0],
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 });
+
+// In-memory rate limiting store
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+interface RateLimitConfig {
+  maxRequests: number;
+  windowMs: number;
+}
+
+function checkRateLimit(key: string, config: RateLimitConfig): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (rateLimitStore.size > 10000) {
+    for (const [k, v] of rateLimitStore.entries()) {
+      if (now > v.resetTime) rateLimitStore.delete(k);
+    }
+  }
+
+  if (!entry || now > entry.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + config.windowMs });
+    return { allowed: true, remaining: config.maxRequests - 1, resetIn: config.windowMs };
+  }
+
+  if (entry.count >= config.maxRequests) {
+    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: config.maxRequests - entry.count, resetIn: entry.resetTime - now };
+}
+
+// Rate limit: 3 blog generations per hour per user
+const BLOG_RATE_LIMIT: RateLimitConfig = {
+  maxRequests: 3,
+  windowMs: 60 * 60 * 1000, // 1 hour
+};
 
 const systemPrompt = `You are an expert SEO content writer specializing in the roofing industry. Your job is to write engaging, informative blog posts that help roofing contractors attract local customers.
 
@@ -52,7 +90,50 @@ serve(async (req) => {
   }
 
   try {
-    const { action, businessName, location, serviceAreas, services, existingTopics } = await req.json();
+    // Extract user ID from auth token for rate limiting
+    const authHeader = req.headers.get("authorization");
+    let userId = "anonymous";
+    
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (user) userId = user.id;
+      } catch (e) {
+        console.log("Auth extraction failed, using anonymous rate limit");
+      }
+    }
+
+    // Rate limiting by user ID (only for generate_post action)
+    const body = await req.json();
+    const { action, businessName, location, serviceAreas, services, existingTopics } = body;
+
+    if (action === "generate_post") {
+      const rateLimitKey = `blog:${userId}`;
+      const rateCheck = checkRateLimit(rateLimitKey, BLOG_RATE_LIMIT);
+
+      if (!rateCheck.allowed) {
+        console.log(`Blog generation rate limit exceeded for user: ${userId}`);
+        return new Response(
+          JSON.stringify({ 
+            error: "Blog generation limit reached. You can generate up to 3 posts per hour.",
+            retryAfter: Math.ceil(rateCheck.resetIn / 1000)
+          }),
+          { 
+            status: 429, 
+            headers: { 
+              ...corsHeaders, 
+              "Content-Type": "application/json",
+              "Retry-After": String(Math.ceil(rateCheck.resetIn / 1000))
+            } 
+          }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {

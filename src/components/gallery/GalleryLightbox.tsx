@@ -94,6 +94,8 @@ export function GalleryLightbox({ items, initialIndex, onClose }: GalleryLightbo
               src={item.after}
               alt="After"
               className="absolute inset-0 w-full h-full object-contain bg-black"
+              loading="eager"
+              decoding="async"
             />
             <div
               className="absolute inset-0 overflow-hidden"
@@ -104,6 +106,8 @@ export function GalleryLightbox({ items, initialIndex, onClose }: GalleryLightbo
                 alt="Before"
                 className="absolute inset-0 h-full object-contain bg-black"
                 style={{ width: `${100 / (sliderPosition / 100)}%` }}
+                loading="eager"
+                decoding="async"
               />
             </div>
             <div
@@ -136,6 +140,8 @@ export function GalleryLightbox({ items, initialIndex, onClose }: GalleryLightbo
             src={displayImage}
             alt={item.caption || "Gallery image"}
             className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            loading="eager"
+            decoding="async"
           />
         )}
 

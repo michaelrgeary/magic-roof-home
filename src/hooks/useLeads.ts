@@ -68,24 +68,34 @@ export function useLeads(siteId: string | undefined) {
   };
 }
 
-// Public hook for submitting leads (no auth required)
+// Public hook for submitting leads (no auth required) - uses rate-limited edge function
 export function useSubmitLead() {
   return useMutation({
-    mutationFn: async (lead: Omit<LeadInsert, "id" | "created_at" | "status" | "sms_sent">) => {
-      const { data, error } = await supabase
-        .from("leads")
-        .insert(lead)
-        .select()
-        .single();
+    mutationFn: async (lead: Omit<LeadInsert, "id" | "created_at" | "status" | "sms_sent" | "read" | "notes">) => {
+      const response = await supabase.functions.invoke("submit-lead", {
+        body: lead,
+      });
 
-      if (error) throw error;
-      return data;
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to submit lead");
+      }
+
+      // Handle rate limiting response
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return response.data;
     },
     onSuccess: () => {
       toast.success("Your request has been submitted! We'll be in touch soon.");
     },
     onError: (error) => {
-      toast.error(`Failed to submit request: ${error.message}`);
+      if (error.message.includes("Too many requests")) {
+        toast.error("Please wait a moment before submitting another request.");
+      } else {
+        toast.error(`Failed to submit request: ${error.message}`);
+      }
     },
   });
 }

@@ -136,6 +136,7 @@ export function BeforeAfterPair({
                 alt="After"
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
+                decoding="async"
               />
               <div
                 className="absolute inset-0 overflow-hidden"
@@ -147,6 +148,7 @@ export function BeforeAfterPair({
                   className="absolute inset-0 w-full h-full object-cover"
                   style={{ width: `${100 / (sliderPosition / 100)}%` }}
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div

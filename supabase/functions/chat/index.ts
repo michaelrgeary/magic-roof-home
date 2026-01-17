@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
@@ -10,6 +11,43 @@ const getCorsHeaders = (origin: string | null) => ({
   "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin || "") ? origin! : ALLOWED_ORIGINS[0],
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 });
+
+// In-memory rate limiting store
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+interface RateLimitConfig {
+  maxRequests: number;
+  windowMs: number;
+}
+
+function checkRateLimit(key: string, config: RateLimitConfig): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (rateLimitStore.size > 10000) {
+    for (const [k, v] of rateLimitStore.entries()) {
+      if (now > v.resetTime) rateLimitStore.delete(k);
+    }
+  }
+
+  if (!entry || now > entry.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + config.windowMs });
+    return { allowed: true, remaining: config.maxRequests - 1, resetIn: config.windowMs };
+  }
+
+  if (entry.count >= config.maxRequests) {
+    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: config.maxRequests - entry.count, resetIn: entry.resetTime - now };
+}
+
+// Rate limit: 20 messages per minute per user
+const CHAT_RATE_LIMIT: RateLimitConfig = {
+  maxRequests: 20,
+  windowMs: 60 * 1000,
+};
 
 const onboardingPrompt = `You are a friendly assistant helping a roofing contractor set up their website. Your job is to gather information through a natural conversation.
 
@@ -124,6 +162,45 @@ serve(async (req) => {
   }
 
   try {
+    // Extract user ID from auth token for rate limiting
+    const authHeader = req.headers.get("authorization");
+    let userId = "anonymous";
+    
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (user) userId = user.id;
+      } catch (e) {
+        console.log("Auth extraction failed, using anonymous rate limit");
+      }
+    }
+
+    // Rate limiting by user ID
+    const rateLimitKey = `chat:${userId}`;
+    const rateCheck = checkRateLimit(rateLimitKey, CHAT_RATE_LIMIT);
+
+    if (!rateCheck.allowed) {
+      console.log(`Rate limit exceeded for user: ${userId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Too many messages. Please wait a moment and try again.",
+          retryAfter: Math.ceil(rateCheck.resetIn / 1000)
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(Math.ceil(rateCheck.resetIn / 1000))
+          } 
+        }
+      );
+    }
+
     const { messages, mode, currentConfig } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
