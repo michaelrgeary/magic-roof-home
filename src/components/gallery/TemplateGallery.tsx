@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GalleryLightbox } from "./GalleryLightbox";
+import { OptimizedImage } from "./OptimizedImage";
 
 interface GalleryItem {
   before?: string;
@@ -35,19 +36,20 @@ export function TemplateGallery({ items, variant = "classic" }: TemplateGalleryP
           <button
             key={index}
             onClick={() => setLightboxIndex(index)}
-            className={`group relative aspect-video overflow-hidden ${cardStyles[variant]} focus:outline-none focus:ring-2 focus:ring-primary`}
+            className={`group relative overflow-hidden ${cardStyles[variant]} focus:outline-none focus:ring-2 focus:ring-primary`}
           >
-            {/* Display after image, or before if no after */}
-            <img
-              src={item.after || item.before}
+            {/* Optimized image with lazy loading and skeleton placeholder */}
+            <OptimizedImage
+              src={item.after || item.before || ""}
               alt={item.caption || `Project ${index + 1}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
+              aspectRatio="video"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="transition-transform duration-300 group-hover:scale-105"
             />
 
             {/* Before/After indicator */}
             {item.before && item.after && (
-              <div className="absolute top-2 left-2 flex gap-1">
+              <div className="absolute top-2 left-2 flex gap-1 z-10">
                 <span className="text-xs bg-black/70 text-white px-2 py-1 rounded">
                   Before/After
                 </span>
@@ -55,7 +57,7 @@ export function TemplateGallery({ items, variant = "classic" }: TemplateGalleryP
             )}
 
             {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center z-10">
               <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-medium">
                 View Project
               </span>
@@ -63,7 +65,7 @@ export function TemplateGallery({ items, variant = "classic" }: TemplateGalleryP
 
             {/* Caption */}
             {item.caption && (
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10">
                 <p className="text-white text-sm line-clamp-2">{item.caption}</p>
               </div>
             )}
