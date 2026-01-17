@@ -6,11 +6,22 @@ const ClassicPro = lazy(() => import("./ClassicPro"));
 const ModernEdge = lazy(() => import("./ModernEdge"));
 const TrustedLocal = lazy(() => import("./TrustedLocal"));
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  meta_description: string | null;
+  published_at: string | null;
+  created_at: string;
+}
+
 interface TemplateRendererProps {
   template: "classic-pro" | "modern-edge" | "trusted-local";
   config: SiteConfig;
   siteId?: string;
+  siteSlug?: string;
   isPreview?: boolean;
+  blogs?: BlogPost[];
 }
 
 function TemplateSkeleton() {
@@ -29,17 +40,17 @@ function TemplateSkeleton() {
   );
 }
 
-export function TemplateRenderer({ template, config, siteId, isPreview }: TemplateRendererProps) {
+export function TemplateRenderer({ template, config, siteId, siteSlug, isPreview, blogs }: TemplateRendererProps) {
   const renderTemplate = () => {
     switch (template) {
       case "classic-pro":
-        return <ClassicPro config={config} siteId={siteId} isPreview={isPreview} />;
+        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
       case "modern-edge":
-        return <ModernEdge config={config} siteId={siteId} isPreview={isPreview} />;
+        return <ModernEdge config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
       case "trusted-local":
-        return <TrustedLocal config={config} siteId={siteId} isPreview={isPreview} />;
+        return <TrustedLocal config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
       default:
-        return <ClassicPro config={config} siteId={siteId} isPreview={isPreview} />;
+        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
     }
   };
 

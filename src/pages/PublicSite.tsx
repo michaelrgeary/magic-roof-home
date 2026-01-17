@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { usePublicSite } from "@/hooks/usePublicSite";
+import { usePublicBlogs } from "@/hooks/useBlogs";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
 import { Loader2 } from "lucide-react";
 import type { SiteConfig } from "@/components/templates/types";
@@ -8,6 +9,7 @@ import type { SiteConfig } from "@/components/templates/types";
 export default function PublicSite() {
   const { slug } = useParams<{ slug: string }>();
   const { data: site, isLoading, error } = usePublicSite(slug);
+  const { data: blogs } = usePublicBlogs(slug);
 
   if (isLoading) {
     return (
@@ -84,7 +86,9 @@ export default function PublicSite() {
         template={site.template as "classic-pro" | "modern-edge" | "trusted-local"}
         config={config}
         siteId={site.id}
+        siteSlug={slug}
         isPreview={false}
+        blogs={blogs || []}
       />
     </>
   );

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Menu, X, Users } from "lucide-react";
+import { Home, Menu, X, Users, FileText } from "lucide-react";
 import { useState } from "react";
 import { useAllLeads } from "@/hooks/useLeads";
+import { useAllBlogs } from "@/hooks/useBlogs";
 
 interface HeaderProps {
   isAuthenticated?: boolean;
@@ -13,7 +14,9 @@ interface HeaderProps {
 export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { data: allLeads } = useAllLeads();
+  const { blogs } = useAllBlogs();
   const newLeadsCount = allLeads?.filter(l => l.status === "new").length ?? 0;
+  const draftBlogsCount = blogs?.filter(b => !b.published).length ?? 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,6 +50,17 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
                   {newLeadsCount > 0 && (
                     <Badge variant="default" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
                       {newLeadsCount}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+              <Link to="/blogs" className="relative">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <FileText className="h-4 w-4" />
+                  Blogs
+                  {draftBlogsCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
+                      {draftBlogsCount}
                     </Badge>
                   )}
                 </Button>
@@ -110,6 +124,17 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
                     {newLeadsCount > 0 && (
                       <Badge variant="default" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
                         {newLeadsCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+                <Link to="/blogs" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Blogs
+                    {draftBlogsCount > 0 && (
+                      <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
+                        {draftBlogsCount}
                       </Badge>
                     )}
                   </Button>
