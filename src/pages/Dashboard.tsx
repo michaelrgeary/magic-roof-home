@@ -232,15 +232,36 @@ export default function Dashboard() {
         {/* Recent Leads */}
         {allLeads && allLeads.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">Recent Leads</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                Recent Leads
+                {newLeads.length > 0 && (
+                  <Badge variant="default" className="text-xs">
+                    {newLeads.length} new
+                  </Badge>
+                )}
+              </h2>
+              <Button variant="outline" size="sm" onClick={() => navigate("/leads")}>
+                View All Leads
+              </Button>
+            </div>
             <Card>
               <CardContent className="p-0">
                 <div className="divide-y">
                   {allLeads.slice(0, 5).map((lead) => (
-                    <div key={lead.id} className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{lead.name}</p>
-                        <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                    <div 
+                      key={lead.id} 
+                      className="p-4 flex items-center justify-between hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => navigate("/leads")}
+                    >
+                      <div className="flex items-center gap-3">
+                        {lead.status === "new" && !lead.read && (
+                          <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        )}
+                        <div>
+                          <p className="font-medium">{lead.name}</p>
+                          <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                        </div>
                       </div>
                       <div className="text-right">
                         <span className={`text-xs px-2 py-1 rounded-full ${

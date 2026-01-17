@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, Menu, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Home, Menu, X, Users } from "lucide-react";
 import { useState } from "react";
+import { useAllLeads } from "@/hooks/useLeads";
 
 interface HeaderProps {
   isAuthenticated?: boolean;
@@ -10,6 +12,8 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: allLeads } = useAllLeads();
+  const newLeadsCount = allLeads?.filter(l => l.status === "new").length ?? 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -35,6 +39,17 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
             <div className="flex items-center gap-4">
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm">Dashboard</Button>
+              </Link>
+              <Link to="/leads" className="relative">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  Leads
+                  {newLeadsCount > 0 && (
+                    <Badge variant="default" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
+                      {newLeadsCount}
+                    </Badge>
+                  )}
+                </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={onSignOut}>
                 Sign Out
@@ -87,6 +102,17 @@ export function Header({ isAuthenticated, onSignOut }: HeaderProps) {
               <>
                 <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+                </Link>
+                <Link to="/leads" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Leads
+                    {newLeadsCount > 0 && (
+                      <Badge variant="default" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
+                        {newLeadsCount}
+                      </Badge>
+                    )}
+                  </Button>
                 </Link>
                 <Button variant="outline" onClick={onSignOut} className="w-full">
                   Sign Out

@@ -21,7 +21,9 @@ export type Database = {
           id: string
           message: string | null
           name: string
+          notes: string | null
           phone: string
+          read: boolean
           site_id: string
           sms_sent: boolean
           source: Database["public"]["Enums"]["lead_source"]
@@ -33,7 +35,9 @@ export type Database = {
           id?: string
           message?: string | null
           name: string
+          notes?: string | null
           phone: string
+          read?: boolean
           site_id: string
           sms_sent?: boolean
           source?: Database["public"]["Enums"]["lead_source"]
@@ -45,7 +49,9 @@ export type Database = {
           id?: string
           message?: string | null
           name?: string
+          notes?: string | null
           phone?: string
+          read?: boolean
           site_id?: string
           sms_sent?: boolean
           source?: Database["public"]["Enums"]["lead_source"]
