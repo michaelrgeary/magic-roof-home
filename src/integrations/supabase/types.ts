@@ -71,6 +71,11 @@ export type Database = {
         Row: {
           company_name: string
           created_at: string
+          google_account_id: string | null
+          google_connected_at: string | null
+          google_location_id: string | null
+          google_location_name: string | null
+          google_refresh_token: string | null
           id: string
           notification_phone: string | null
           phone: string | null
@@ -79,6 +84,11 @@ export type Database = {
         Insert: {
           company_name: string
           created_at?: string
+          google_account_id?: string | null
+          google_connected_at?: string | null
+          google_location_id?: string | null
+          google_location_name?: string | null
+          google_refresh_token?: string | null
           id: string
           notification_phone?: string | null
           phone?: string | null
@@ -87,6 +97,11 @@ export type Database = {
         Update: {
           company_name?: string
           created_at?: string
+          google_account_id?: string | null
+          google_connected_at?: string | null
+          google_location_id?: string | null
+          google_location_name?: string | null
+          google_refresh_token?: string | null
           id?: string
           notification_phone?: string | null
           phone?: string | null
