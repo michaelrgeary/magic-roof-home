@@ -49,7 +49,7 @@ export function PublishFlow({
   onPublishComplete 
 }: PublishFlowProps) {
   const navigate = useNavigate();
-  const { sites, publishSite, updateSite } = useSites();
+  const { sites, publishSite } = useSites();
   const { subscription, isLoading: subLoading, isActive, isPro } = useSubscription();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployProgress, setDeployProgress] = useState(0);
@@ -106,7 +106,7 @@ export function PublishFlow({
   const isValid = validationErrors.length === 0;
 
   const handlePublish = async () => {
-    if (!isValid || !canPublish) return;
+    if (!isValid) return;
 
     setIsDeploying(true);
     setDeployProgress(10);
@@ -126,24 +126,45 @@ export function PublishFlow({
       const existingSlugs = existingSites?.map(s => s.domain).filter(Boolean) as string[] || [];
       const uniqueSlug = generateUniqueSlug(baseSlug, existingSlugs.filter(s => s !== currentDomain));
       
-      // Step 3: Update site with domain and publish
+      // Step 3: Publish via Edge Function (includes plan validation)
       setDeployProgress(60);
-      await updateSite.mutateAsync({
-        id: siteId,
+      await publishSite.mutateAsync({
+        siteId,
+        publish: true,
         domain: uniqueSlug,
-        domain_type: "subdomain" as const,
+        domainType: "subdomain" as const,
       });
-
-      setDeployProgress(80);
-      await publishSite.mutateAsync({ siteId, publish: true });
 
       setDeployProgress(100);
       setPublishedUrl(`/site/${uniqueSlug}`);
       
       onPublishComplete?.();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Publish error:", error);
-      toast.error("Failed to publish site. Please try again.");
+      
+      const err = error as Error & { code?: string; details?: { currentCount?: number; limit?: number; plan?: string } };
+      
+      if (err.code === "LIMIT_REACHED") {
+        // Show upgrade prompt for limit reached
+        toast.error(
+          `Site limit reached. Your ${err.details?.plan || "basic"} plan allows ${err.details?.limit || 1} published site.`,
+          {
+            action: {
+              label: "Upgrade",
+              onClick: () => navigate("/billing"),
+            },
+          }
+        );
+      } else if (err.code === "NO_SUBSCRIPTION") {
+        toast.error("Active subscription required to publish.", {
+          action: {
+            label: "Subscribe",
+            onClick: () => navigate("/pricing"),
+          },
+        });
+      } else {
+        toast.error("Failed to publish site. Please try again.");
+      }
     } finally {
       setIsDeploying(false);
     }
@@ -334,25 +355,40 @@ export function PublishFlow({
 
         <Card>
           <CardHeader>
-            <CardTitle>Custom Domain</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Custom Domain
+            </CardTitle>
             <CardDescription>
               Connect your own domain for a professional look
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isPro ? (
-              <div className="p-4 bg-primary/5 rounded-lg text-center">
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                    Coming Soon
+                  </span>
+                </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Custom domains coming soon!
+                  Custom domain support is coming soon! As a Pro user, you'll be the first to get access.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Your site is currently available at your subdomain above.
                 </p>
               </div>
             ) : (
-              <div className="p-4 bg-muted/50 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Custom domains available with Pro plan
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-1">Pro Feature</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Connect your own domain like www.yourcompany.com with the Pro plan.
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/billing">Upgrade to Pro</Link>
+                  <Link to="/billing">
+                    Upgrade to Pro
+                    <ArrowUpRight className="ml-1 h-3 w-3" />
+                  </Link>
                 </Button>
               </div>
             )}

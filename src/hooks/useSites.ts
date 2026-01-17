@@ -101,28 +101,62 @@ export function useSites() {
   });
 
   const publishSite = useMutation({
-    mutationFn: async ({ siteId, publish }: { siteId: string; publish: boolean }) => {
+    mutationFn: async ({ 
+      siteId, 
+      publish, 
+      domain, 
+      domainType 
+    }: { 
+      siteId: string; 
+      publish: boolean; 
+      domain?: string;
+      domainType?: "subdomain" | "purchased" | "existing";
+    }) => {
       if (!user?.id) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase
-        .from("sites")
-        .update({ 
-          published: publish,
-          published_at: publish ? new Date().toISOString() : null
-        })
-        .eq("id", siteId)
-        .eq("user_id", user.id)
-        .select()
-        .single();
+      if (publish) {
+        // Use Edge Function for publishing (server-side validation)
+        const { data, error } = await supabase.functions.invoke("publish-site", {
+          body: { siteId, domain, domainType },
+        });
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        
+        if (data.error) {
+          const err = new Error(data.error) as Error & { code?: string; details?: unknown };
+          err.code = data.code;
+          err.details = data;
+          throw err;
+        }
+
+        return data.site;
+      } else {
+        // Unpublishing can remain client-side (less restrictive)
+        const { data, error } = await supabase
+          .from("sites")
+          .update({ 
+            published: false,
+            published_at: null
+          })
+          .eq("id", siteId)
+          .eq("user_id", user.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["sites", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["site"] });
       toast.success(data.published ? "Site published!" : "Site unpublished");
     },
-    onError: (error) => {
+    onError: (error: Error & { code?: string; details?: unknown }) => {
+      // Don't show toast for limit errors - let UI handle them
+      if (error.code === "LIMIT_REACHED" || error.code === "NO_SUBSCRIPTION") {
+        return;
+      }
       toast.error(`Failed to update publish status: ${error.message}`);
     },
   });
