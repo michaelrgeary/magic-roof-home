@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
+import EditSite from "./pages/EditSite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Onboarding />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit/:siteId"
+            element={
+              <ProtectedRoute>
+                <EditSite />
               </ProtectedRoute>
             }
           />

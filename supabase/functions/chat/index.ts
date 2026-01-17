@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const systemPrompt = `You are a friendly assistant helping a roofing contractor set up their website. Your job is to gather information through a natural conversation.
+const onboardingPrompt = `You are a friendly assistant helping a roofing contractor set up their website. Your job is to gather information through a natural conversation.
 
 CONVERSATION FLOW:
 1. First, ask for their company name
@@ -24,10 +24,41 @@ GUIDELINES:
 - If they give partial answers, ask follow-up questions
 - If they want to skip something, that's okay, move on
 - Keep responses SHORT - 1-2 sentences max
-- Don't be robotic or use bullet points
+- Don't be robotic or use bullet points`;
 
-After gathering enough info (at least company name, services, and what makes them different), output a JSON block wrapped in <site_config> tags with the extracted data. Example:
+const editPrompt = `You are a friendly assistant helping a roofing contractor edit their existing website. You have access to their current site configuration.
 
+CURRENT SITE CONFIG:
+{{CURRENT_CONFIG}}
+
+YOUR ROLE:
+- Help them make changes to their existing site
+- Understand what they want to change
+- Make updates to the config based on their requests
+- Confirm changes before finalizing
+
+COMMON EDIT REQUESTS:
+- Changing headlines, taglines, or about text
+- Adding/removing services
+- Updating phone number, email, or address
+- Adding/removing service areas
+- Updating credentials or certifications
+- Changing what makes them different
+
+GUIDELINES:
+- Reference their current values when relevant: "Your current tagline is 'X'. What would you like to change it to?"
+- Be helpful and proactive - suggest related changes
+- Keep responses SHORT - 1-2 sentences max
+- Ask clarifying questions if the request is unclear
+- When they're done, confirm the changes made
+
+IMPORTANT: After understanding what they want to change, output the COMPLETE updated config (not just changes) in the site_config block.`;
+
+const configOutputInstructions = `
+
+After gathering enough info OR making edits, output a JSON block wrapped in <site_config> tags with the complete config. Also output a <changes> block listing what was added/changed.
+
+Example output for NEW site:
 <site_config>
 {
   "businessName": "ABC Roofing",
@@ -48,8 +79,24 @@ After gathering enough info (at least company name, services, and what makes the
   ]
 }
 </site_config>
+<changes>
+- Set company name to "ABC Roofing"
+- Added tagline
+- Set phone number
+- Added 2 services
+- Added 3 service areas
+</changes>
 
-Only output the <site_config> block when you have gathered enough information and are wrapping up the conversation.`;
+Example output for EDIT:
+<site_config>
+{...complete updated config...}
+</site_config>
+<changes>
+- Changed tagline from "Quality You Can Trust" to "Roofing Done Right Since 1995"
+- Added "Storm Damage Repair" to services
+</changes>
+
+Only output these blocks when you have made changes or gathered enough information.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -57,14 +104,22 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, mode, currentConfig } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Processing chat request with", messages.length, "messages");
+    console.log("Processing chat request:", { mode, messageCount: messages.length });
+
+    // Build system prompt based on mode
+    let systemPrompt: string;
+    if (mode === "edit" && currentConfig) {
+      systemPrompt = editPrompt.replace("{{CURRENT_CONFIG}}", JSON.stringify(currentConfig, null, 2)) + configOutputInstructions;
+    } else {
+      systemPrompt = onboardingPrompt + configOutputInstructions;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

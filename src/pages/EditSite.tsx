@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { SiteChat } from "@/components/chat/SiteChat";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
 import { sampleConfig, type SiteConfig } from "@/components/templates/types";
 import { Button } from "@/components/ui/button";
-import { useSites } from "@/hooks/useSites";
-import { useProfile } from "@/hooks/useProfile";
+import { useSite, useSites } from "@/hooks/useSites";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { Home, ArrowLeft, Check, Loader2, X, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -19,18 +18,29 @@ const templates: { id: TemplateType; name: string; description: string }[] = [
   { id: "trusted-local", name: "Trusted Local", description: "Warm & approachable" },
 ];
 
-export default function Onboarding() {
+export default function EditSite() {
+  const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile, createProfile } = useProfile();
-  const { createSite } = useSites();
+  const { data: site, isLoading: siteLoading, error: siteError } = useSite(siteId);
+  const { updateSite } = useSites();
   
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("classic-pro");
-  const [config, setConfig] = useState<Partial<SiteConfig>>({
-    phone: "(555) 123-4567",
-  });
-  const [isReady, setIsReady] = useState(false);
+  const [config, setConfig] = useState<Partial<SiteConfig>>({});
+  const [originalConfig, setOriginalConfig] = useState<Partial<SiteConfig>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  const [changes, setChanges] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Load site data
+  useEffect(() => {
+    if (site) {
+      const siteConfig = site.config as unknown as Partial<SiteConfig>;
+      setConfig(siteConfig);
+      setOriginalConfig(siteConfig);
+      setSelectedTemplate(site.template as TemplateType);
+    }
+  }, [site]);
 
   // Merge with sample config for preview
   const previewConfig: SiteConfig = {
@@ -44,41 +54,70 @@ export default function Onboarding() {
 
   const handleConfigUpdate = (newConfig: Partial<SiteConfig>) => {
     setConfig((prev) => ({ ...prev, ...newConfig }));
+    setHasChanges(true);
   };
 
-  const handleComplete = async () => {
-    if (!user?.id) {
-      toast.error("Please sign in to save your site");
+  const handleChangesDetected = (detectedChanges: string[]) => {
+    setChanges(detectedChanges);
+  };
+
+  const handleSave = async () => {
+    if (!siteId || !user?.id) {
+      toast.error("Unable to save changes");
       return;
     }
 
     setIsSaving(true);
 
     try {
-      // Create profile if it doesn't exist
-      if (!profile) {
-        await createProfile.mutateAsync({
-          company_name: config.businessName || "My Roofing Company",
-          phone: config.phone || null,
-        });
-      }
-
-      // Create the site
-      await createSite.mutateAsync({
+      await updateSite.mutateAsync({
+        id: siteId,
         template: selectedTemplate,
         config: JSON.parse(JSON.stringify(previewConfig)),
-        published: false,
       });
 
-      toast.success("Site created successfully!");
+      toast.success("Site updated successfully!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Failed to save site:", error);
-      toast.error("Failed to save site. Please try again.");
+      toast.error("Failed to save changes. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleDiscard = () => {
+    if (hasChanges) {
+      const confirmed = window.confirm("Are you sure you want to discard your changes?");
+      if (!confirmed) return;
+    }
+    navigate("/dashboard");
+  };
+
+  if (siteLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (siteError || !site) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h1 className="text-xl font-bold mb-2">Site not found</h1>
+          <p className="text-muted-foreground mb-4">
+            This site doesn't exist or you don't have access to it.
+          </p>
+          <Button onClick={() => navigate("/dashboard")}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -86,16 +125,29 @@ export default function Onboarding() {
       <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <button
+              onClick={handleDiscard}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-            </Link>
+              <span className="hidden sm:inline">Back</span>
+            </button>
+            {hasChanges && (
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                Unsaved changes
+              </span>
+            )}
           </div>
           <Link to="/" className="flex items-center gap-2 font-bold">
             <Home className="h-5 w-5 text-primary" />
             <span>RoofSites</span>
           </Link>
-          <div className="w-20" /> {/* Spacer for centering */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleDiscard}>
+              <X className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Discard</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -104,9 +156,11 @@ export default function Onboarding() {
         {/* Chat side */}
         <div className="lg:w-[400px] xl:w-[480px] border-r flex flex-col h-[50vh] lg:h-[calc(100vh-57px)]">
           <SiteChat
-            mode="onboarding"
+            mode="edit"
+            currentConfig={originalConfig}
             onConfigUpdate={handleConfigUpdate}
-            onComplete={() => setIsReady(true)}
+            onChangesDetected={handleChangesDetected}
+            onComplete={handleSave}
           />
         </div>
 
@@ -119,7 +173,10 @@ export default function Onboarding() {
               {templates.map((template) => (
                 <button
                   key={template.id}
-                  onClick={() => setSelectedTemplate(template.id)}
+                  onClick={() => {
+                    setSelectedTemplate(template.id);
+                    setHasChanges(true);
+                  }}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     selectedTemplate === template.id
                       ? "bg-primary text-primary-foreground"
@@ -141,16 +198,17 @@ export default function Onboarding() {
               <TemplateRenderer
                 template={selectedTemplate}
                 config={previewConfig}
+                siteId={siteId}
                 isPreview
               />
             </div>
           </div>
 
           {/* Save button (mobile) */}
-          {isReady && (
+          {hasChanges && (
             <div className="p-4 border-t lg:hidden">
               <Button
-                onClick={handleComplete}
+                onClick={handleSave}
                 disabled={isSaving}
                 className="w-full"
                 size="lg"
@@ -161,7 +219,7 @@ export default function Onboarding() {
                     Saving...
                   </>
                 ) : (
-                  "Save & Continue"
+                  "Save Changes"
                 )}
               </Button>
             </div>
@@ -170,10 +228,10 @@ export default function Onboarding() {
       </div>
 
       {/* Desktop save button (floating) */}
-      {isReady && (
+      {hasChanges && (
         <div className="hidden lg:block fixed bottom-6 right-6 z-50">
           <Button
-            onClick={handleComplete}
+            onClick={handleSave}
             disabled={isSaving}
             size="lg"
             className="shadow-lg"
@@ -186,7 +244,7 @@ export default function Onboarding() {
             ) : (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                Save & Continue to Dashboard
+                Save Changes
               </>
             )}
           </Button>
