@@ -15,6 +15,10 @@ import PublicSite from "./pages/PublicSite";
 import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
 import Leads from "./pages/Leads";
+import Blogs from "./pages/Blogs";
+import BlogEditor from "./pages/BlogEditor";
+import PublicBlogList from "./pages/PublicBlogList";
+import PublicBlogPost from "./pages/PublicBlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,8 +82,26 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            {/* Public site route - no auth required */}
+            <Route
+              path="/blogs"
+              element={
+                <ProtectedRoute>
+                  <Blogs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs/:blogId"
+              element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              }
+            />
+            {/* Public site routes */}
             <Route path="/site/:slug" element={<PublicSite />} />
+            <Route path="/site/:slug/blog" element={<PublicBlogList />} />
+            <Route path="/site/:slug/blog/:postSlug" element={<PublicBlogPost />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

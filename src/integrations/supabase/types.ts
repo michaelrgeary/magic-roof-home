@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      blogs: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          meta_description: string | null
+          published: boolean
+          published_at: string | null
+          site_id: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          published?: boolean
+          published_at?: string | null
+          site_id: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          published?: boolean
+          published_at?: string | null
+          site_id?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blogs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
