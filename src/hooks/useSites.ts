@@ -4,32 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
+// Re-export SiteConfig from templates for convenience
+export type { SiteConfig } from "@/components/templates/types";
+
 export type Site = Tables<"sites">;
 export type SiteInsert = TablesInsert<"sites">;
 export type SiteUpdate = TablesUpdate<"sites">;
 
-// Type for site config JSONB
-export interface SiteConfig {
-  businessName?: string;
-  tagline?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  services?: string[];
-  about?: string;
-  heroImage?: string;
-  logo?: string;
-  colors?: {
-    primary?: string;
-    secondary?: string;
-  };
-  testimonials?: Array<{
-    name: string;
-    text: string;
-    rating: number;
-  }>;
-  gallery?: string[];
-}
 
 export function useSites() {
   const { user } = useAuth();
