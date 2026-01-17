@@ -1,11 +1,15 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSites } from "@/hooks/useSites";
 import { useAllLeads } from "@/hooks/useLeads";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -17,8 +21,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Globe, FileText, Users, TrendingUp, Plus, Settings, Loader2, ExternalLink, Edit, Rocket, EyeOff } from "lucide-react";
+import { Globe, FileText, Users, TrendingUp, Plus, Settings, Loader2, ExternalLink, Edit, Rocket, EyeOff, CreditCard, ArrowUpRight } from "lucide-react";
 import type { SiteConfig } from "@/components/templates/types";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
