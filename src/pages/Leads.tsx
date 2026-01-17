@@ -242,7 +242,7 @@ export default function Leads() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredLeads.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12 px-4">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No leads yet</h3>
                 <p className="text-muted-foreground">
@@ -250,79 +250,122 @@ export default function Leads() {
                 </p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Lead</TableHead>
-                    <TableHead className="hidden md:table-cell">Site</TableHead>
-                    <TableHead className="hidden sm:table-cell">Source</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden lg:table-cell">Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y">
                   {filteredLeads.map((lead) => (
-                    <TableRow
+                    <div
                       key={lead.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="p-4 hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => setSelectedLead(lead as Lead)}
                     >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2 min-w-0 flex-1">
                           {lead.status === "new" && !lead.read && (
-                            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            <span className="h-2 w-2 rounded-full bg-primary animate-pulse mt-2 shrink-0" />
                           )}
-                          <div>
-                            <p className="font-medium">{lead.name}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{lead.name}</p>
                             <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {getSiteName(lead as Lead)} · {new Date(lead.created_at).toLocaleDateString()}
+                            </p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <span className="text-sm">{getSiteName(lead as Lead)}</span>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className="capitalize text-xs">
-                          {lead.source.replace("_", " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(lead.status)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.location.href = `tel:${lead.phone}`;
-                            }}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {getStatusBadge(lead.status)}
+                          <a
+                            href={`tel:${lead.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-3 hover:bg-primary/10 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
                           >
-                            <Phone className="h-4 w-4" />
-                          </Button>
-                          {lead.email && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = `mailto:${lead.email}`;
-                              }}
-                            >
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                          )}
+                            <Phone className="h-5 w-5 text-primary" />
+                          </a>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Lead</TableHead>
+                        <TableHead>Site</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLeads.map((lead) => (
+                        <TableRow
+                          key={lead.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => setSelectedLead(lead as Lead)}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {lead.status === "new" && !lead.read && (
+                                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                              )}
+                              <div>
+                                <p className="font-medium">{lead.name}</p>
+                                <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{getSiteName(lead as Lead)}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize text-xs">
+                              {lead.source.replace("_", " ")}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(lead.status)}</TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(lead.created_at).toLocaleDateString()}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="min-h-[44px] min-w-[44px]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = `tel:${lead.phone}`;
+                                }}
+                              >
+                                <Phone className="h-4 w-4" />
+                              </Button>
+                              {lead.email && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="min-h-[44px] min-w-[44px]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = `mailto:${lead.email}`;
+                                  }}
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

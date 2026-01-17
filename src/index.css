@@ -131,10 +131,30 @@
   .glow-primary {
     box-shadow: var(--glow-primary);
   }
+
+  /* Mobile touch target improvements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Responsive table wrapper */
+  .table-responsive {
+    @apply overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0;
+  }
+
+  .table-responsive table {
+    @apply min-w-[600px] md:min-w-0;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Mobile safe area padding */
+  .safe-area-inset {
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
