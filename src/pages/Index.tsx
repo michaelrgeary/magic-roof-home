@@ -156,7 +156,7 @@ export default function Index() {
                   Get Started Today
                 </p>
                 <p className="text-4xl md:text-5xl font-bold">
-                  Plans from $29/mo
+                  Plans from $39/mo
                 </p>
                 <p className="text-muted-foreground">
                   Cancel anytime
