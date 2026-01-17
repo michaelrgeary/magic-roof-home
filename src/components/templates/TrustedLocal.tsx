@@ -6,6 +6,8 @@ import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
 import { BlogSection } from "./sections/BlogSection";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
+import { getLocalizedText, type Language } from "@/lib/i18n";
+import { getUITranslation } from "@/lib/translations";
 
 interface BlogPost {
   id: string;
@@ -22,9 +24,13 @@ interface TrustedLocalProps {
   siteSlug?: string;
   isPreview?: boolean;
   blogs?: BlogPost[];
+  language?: Language;
 }
 
-export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blogs }: TrustedLocalProps) {
+export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blogs, language = 'en' }: TrustedLocalProps) {
+  const t = (section: Parameters<typeof getUITranslation>[1], key: Parameters<typeof getUITranslation>[2]) => 
+    getUITranslation(language, section, key);
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans">
       {/* Header */}
@@ -38,7 +44,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
               <div>
                 <h1 className="font-bold text-stone-800">{config.businessName}</h1>
                 {config.tagline && (
-                  <p className="text-xs text-stone-500 hidden sm:block">{config.tagline}</p>
+                  <p className="text-xs text-stone-500 hidden sm:block">{getLocalizedText(config.tagline, language)}</p>
                 )}
               </div>
             </div>
@@ -54,7 +60,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                 href="#contact"
                 className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-full font-medium transition-colors"
               >
-                Free Quote
+                {t('nav', 'freeQuote')}
               </a>
             </div>
           </div>
@@ -67,27 +73,27 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="max-w-2xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Heart className="h-4 w-4" />
-              Locally Owned & Operated
+              {t('hero', 'locallyOwned')}
             </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-stone-800 mb-6 leading-tight">
-              {config.heroHeadline || "Your Neighbors Trust Us With Their Roofs"}
+              {getLocalizedText(config.heroHeadline, language) || t('sections', 'familyBusinessTitle')}
             </h2>
             <p className="text-lg text-stone-600 mb-8">
-              {config.heroSubheadline || "Family-owned roofing company serving our community with care and quality"}
+              {getLocalizedText(config.heroSubheadline, language) || t('footer', 'familyPromise')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#contact"
                 className="inline-flex items-center justify-center bg-green-700 hover:bg-green-800 text-white px-8 py-4 rounded-full font-semibold transition-colors"
               >
-                {config.heroCta || "Get Your Free Quote"}
+                {getLocalizedText(config.heroCta, language) || t('contact', 'getYourFreeQuote')}
               </a>
               <a
                 href={`tel:${config.phone.replace(/\D/g, "")}`}
                 className="inline-flex items-center justify-center border-2 border-stone-300 hover:border-green-700 text-stone-700 px-8 py-4 rounded-full font-semibold transition-colors"
               >
                 <Phone className="mr-2 h-5 w-5" />
-                Call Us Now
+                {t('nav', 'callUsNow')}
               </a>
             </div>
           </div>
@@ -100,19 +106,19 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="flex flex-col items-center gap-2">
               <Users className="h-8 w-8 text-green-600" />
-              <p className="text-sm text-stone-600">Family Owned</p>
+              <p className="text-sm text-stone-600">{t('badges', 'familyOwned')}</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Shield className="h-8 w-8 text-green-600" />
-              <p className="text-sm text-stone-600">Fully Insured</p>
+              <p className="text-sm text-stone-600">{t('badges', 'fullyInsured')}</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Award className="h-8 w-8 text-green-600" />
-              <p className="text-sm text-stone-600">Licensed Pro</p>
+              <p className="text-sm text-stone-600">{t('badges', 'licensedPro')}</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Heart className="h-8 w-8 text-green-600" />
-              <p className="text-sm text-stone-600">Community First</p>
+              <p className="text-sm text-stone-600">{t('badges', 'communityFirst')}</p>
             </div>
           </div>
         </div>
@@ -124,10 +130,10 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-                What Your Neighbors Are Saying
+                {t('sections', 'whatNeighborsSay')}
               </h2>
               <p className="text-stone-600 mb-4">
-                Don't just take our word for it - hear from families just like yours
+                {t('sections', 'neighborsSayDescription')}
               </p>
               {/* Aggregate Rating */}
               {config.testimonials.length > 0 && (() => {
@@ -141,7 +147,9 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                           <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />
                         ))}
                       </div>
-                      <span className="text-sm text-stone-600">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                      <span className="text-sm text-stone-600">
+                        {t('sections', 'basedOnReviews')} {config.testimonials.length} {config.testimonials.length !== 1 ? t('sections', 'reviews_plural') : t('sections', 'review')}
+                      </span>
                     </div>
                   </div>
                 );
@@ -156,6 +164,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                   rating={testimonial.rating}
                   location={testimonial.location}
                   variant="trusted"
+                  language={language}
                 />
               ))}
             </div>
@@ -168,10 +177,10 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-              How We Can Help
+              {t('sections', 'howWeCanHelp')}
             </h2>
             <p className="text-stone-600 max-w-xl mx-auto">
-              From small repairs to complete replacements, we treat every home like it's our own.
+              {t('sections', 'howWeCanHelpDescription')}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -182,6 +191,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                 description={service.description}
                 icon={service.icon}
                 variant="trusted"
+                language={language}
               />
             ))}
           </div>
@@ -193,17 +203,17 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
-              <p className="text-green-700 font-semibold mb-2">Our Story</p>
+              <p className="text-green-700 font-semibold mb-2">{t('sections', 'ourStory')}</p>
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-                A Family Business Built on Trust
+                {t('sections', 'familyBusinessTitle')}
               </h2>
               {config.yearEstablished && (
                 <p className="text-stone-500 mb-4">
-                  Serving families since {config.yearEstablished}
+                  {t('sections', 'servingFamilies')} {config.yearEstablished}
                 </p>
               )}
               <p className="text-stone-600 leading-relaxed mb-6">
-                {config.about || "We're a family-owned business that believes in honest work, fair prices, and treating every customer like a neighbor. Because that's exactly what you are."}
+                {getLocalizedText(config.about, language) || t('footer', 'familyPromise')}
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-stone-200 rounded-full" />
@@ -226,10 +236,10 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-                Proudly Serving Our Community
+                {t('sections', 'proudlyServing')}
               </h2>
               <p className="text-stone-600">
-                We're honored to serve families throughout these wonderful neighborhoods
+                {t('sections', 'proudlyServingDescription')}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
@@ -271,10 +281,10 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-                Our Recent Projects
+                {t('sections', 'ourRecentProjects')}
               </h2>
               <p className="text-stone-600">
-                See the quality work we've done for families in your neighborhood
+                {t('sections', 'recentProjectsDescription')}
               </p>
             </div>
             <TemplateGallery items={config.gallery} variant="trusted" />
@@ -293,10 +303,10 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
-                Let's Talk About Your Roof
+                {t('contact', 'letsChat')}
               </h2>
               <p className="text-stone-600">
-                Get a free, no-obligation quote. We'll treat you like family because that's who we are.
+                {t('contact', 'letsChatDescription')}
               </p>
             </div>
             
@@ -310,7 +320,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                     <Phone className="h-5 w-5 text-green-700" />
                   </div>
                   <div>
-                    <p className="text-xs text-stone-500">Call us</p>
+                    <p className="text-xs text-stone-500">{t('contact', 'callUs')}</p>
                     <p className="font-semibold text-stone-800">{config.phone}</p>
                   </div>
                 </a>
@@ -324,7 +334,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                       <Mail className="h-5 w-5 text-green-700" />
                     </div>
                     <div>
-                      <p className="text-xs text-stone-500">Email us</p>
+                      <p className="text-xs text-stone-500">{t('contact', 'emailUs')}</p>
                       <p className="font-semibold text-stone-800">{config.email}</p>
                     </div>
                   </a>
@@ -336,7 +346,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                       <MapPin className="h-5 w-5 text-green-700" />
                     </div>
                     <div>
-                      <p className="text-xs text-stone-500">Visit us</p>
+                      <p className="text-xs text-stone-500">{t('contact', 'visitUs')}</p>
                       <p className="font-semibold text-stone-800 text-sm">{config.address}</p>
                     </div>
                   </div>
@@ -344,7 +354,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
               </div>
               
               <div className="md:col-span-3 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-200">
-                <ContactForm siteId={siteId} variant="trusted" />
+                <ContactForm siteId={siteId} variant="trusted" language={language} />
               </div>
             </div>
           </div>
@@ -363,11 +373,11 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
                 <span className="font-bold">{config.businessName}</span>
               </div>
               <p className="text-stone-400 text-sm">
-                A family business serving families. That's our promise.
+                {t('footer', 'familyPromise')}
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
+              <h4 className="font-semibold mb-4">{t('footer', 'contact')}</h4>
               <div className="space-y-2 text-sm text-stone-400">
                 <p>{config.phone}</p>
                 {config.email && <p>{config.email}</p>}
@@ -375,7 +385,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Service Areas</h4>
+              <h4 className="font-semibold mb-4">{t('footer', 'servingAreas')}</h4>
               <p className="text-sm text-stone-400">
                 {config.serviceAreas?.slice(0, 4).join(", ")}
                 {(config.serviceAreas?.length || 0) > 4 && " & more"}
@@ -383,7 +393,7 @@ export default function TrustedLocal({ config, siteId, siteSlug, isPreview, blog
             </div>
           </div>
           <div className="border-t border-stone-700 mt-8 pt-8 text-center text-sm text-stone-500">
-            © {new Date().getFullYear()} {config.businessName}. All rights reserved. Made with ❤️ for our community.
+            © {new Date().getFullYear()} {config.businessName}. {t('footer', 'allRightsReserved')} {t('footer', 'madeWithLove')}
           </div>
         </div>
       </footer>

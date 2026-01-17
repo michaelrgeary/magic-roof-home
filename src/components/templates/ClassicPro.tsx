@@ -6,6 +6,8 @@ import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
 import { BlogSection } from "./sections/BlogSection";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
+import { getLocalizedText, type Language } from "@/lib/i18n";
+import { getUITranslation } from "@/lib/translations";
 
 interface BlogPost {
   id: string;
@@ -22,9 +24,13 @@ interface ClassicProProps {
   siteSlug?: string;
   isPreview?: boolean;
   blogs?: BlogPost[];
+  language?: Language;
 }
 
-export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs }: ClassicProProps) {
+export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs, language = 'en' }: ClassicProProps) {
+  const t = (section: Parameters<typeof getUITranslation>[1], key: Parameters<typeof getUITranslation>[2]) => 
+    getUITranslation(language, section, key);
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       {/* Header */}
@@ -48,7 +54,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-amber-500" />
-              <span>Licensed & Insured</span>
+              <span>{t('footer', 'licensedInsured')}</span>
             </div>
           </div>
           
@@ -57,7 +63,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
             <div>
               <h1 className="text-xl md:text-2xl font-serif font-bold">{config.businessName}</h1>
               {config.tagline && (
-                <p className="text-sm text-slate-300">{config.tagline}</p>
+                <p className="text-sm text-slate-300">{getLocalizedText(config.tagline, language)}</p>
               )}
             </div>
             <a
@@ -66,7 +72,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
             >
               <Phone className="h-5 w-5" />
               <span className="hidden sm:inline">{config.phone}</span>
-              <span className="sm:hidden">Call</span>
+              <span className="sm:hidden">{t('nav', 'callUs')}</span>
             </a>
           </div>
         </div>
@@ -77,17 +83,17 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
         <div className="container mx-auto px-4">
           <div className="max-w-2xl">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight">
-              {config.heroHeadline || "Professional Roofing Services"}
+              {getLocalizedText(config.heroHeadline, language) || t('sections', 'ourServices')}
             </h2>
             <p className="text-lg md:text-xl text-slate-300 mb-8">
-              {config.heroSubheadline || "Quality workmanship you can trust"}
+              {getLocalizedText(config.heroSubheadline, language) || t('footer', 'qualityRoofing')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="#contact"
                 className="inline-flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white px-8 py-4 font-bold rounded-sm transition-colors"
               >
-                {config.heroCta || "Get Free Estimate"}
+                {getLocalizedText(config.heroCta, language) || t('contact', 'getYourFreeQuote')}
               </a>
               <a
                 href={`tel:${config.phone.replace(/\D/g, "")}`}
@@ -107,15 +113,15 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-sm md:text-base">
             <div className="flex items-center gap-2">
               <Award className="h-5 w-5" />
-              <span>25+ Years Experience</span>
+              <span>25+ {t('badges', 'yearsExperience')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              <span>Fully Licensed & Insured</span>
+              <span>{t('badges', 'fullyLicensed')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              <span>24/7 Emergency Service</span>
+              <span>{t('badges', 'emergencyService')}</span>
             </div>
           </div>
         </div>
@@ -126,10 +132,10 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4">
-              Our Roofing Services
+              {t('sections', 'ourServices')}
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              From minor repairs to complete installations, we handle all your roofing needs with expertise and care.
+              {t('sections', 'servicesDescription')}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -140,6 +146,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
                 description={service.description}
                 icon={service.icon}
                 variant="classic"
+                language={language}
               />
             ))}
           </div>
@@ -152,21 +159,21 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4">
-                About {config.businessName}
+                {t('sections', 'aboutTitle')} {config.businessName}
               </h2>
               {config.yearEstablished && (
                 <p className="text-amber-600 font-semibold mb-4">
-                  Serving the community since {config.yearEstablished}
+                  {t('sections', 'servingCommunity')} {config.yearEstablished}
                 </p>
               )}
               <p className="text-slate-600 leading-relaxed mb-6">
-                {config.about || "We are a professional roofing company dedicated to providing quality services."}
+                {getLocalizedText(config.about, language) || t('footer', 'qualityRoofing')}
               </p>
               <a
                 href="#contact"
                 className="inline-flex items-center text-amber-600 font-semibold hover:text-amber-700 transition-colors"
               >
-                Contact us today →
+                {t('cta', 'contactUsToday')} →
               </a>
             </div>
             <div className="bg-slate-200 aspect-video rounded-sm flex items-center justify-center">
@@ -181,7 +188,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-8 text-center">
-              Areas We Serve
+              {t('sections', 'areasWeServe')}
             </h2>
             <div className="flex flex-wrap justify-center gap-3">
               {config.serviceAreas.map((area, i) => (
@@ -221,7 +228,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-8 text-center">
-              Our Work
+              {t('sections', 'ourWork')}
             </h2>
             <TemplateGallery items={config.gallery} variant="classic" />
           </div>
@@ -233,7 +240,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
         <section className="bg-slate-100 py-16 md:py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4 text-center">
-              What Our Customers Say
+              {t('sections', 'whatCustomersSay')}
             </h2>
             {/* Aggregate Rating */}
             {config.testimonials.length > 0 && (() => {
@@ -247,7 +254,9 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
                         <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-amber-500 fill-amber-500" : "text-gray-300"}`} />
                       ))}
                     </div>
-                    <span className="text-sm text-slate-600">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                    <span className="text-sm text-slate-600">
+                      {t('sections', 'basedOnReviews')} {config.testimonials.length} {config.testimonials.length !== 1 ? t('sections', 'reviews_plural') : t('sections', 'review')}
+                    </span>
                   </div>
                 </div>
               );
@@ -261,6 +270,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
                   rating={testimonial.rating}
                   location={testimonial.location}
                   variant="classic"
+                  language={language}
                 />
               ))}
             </div>
@@ -279,10 +289,10 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
           <div className="grid md:grid-cols-2 gap-12">
             <div>
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4">
-                Get Your Free Quote
+                {t('contact', 'getYourFreeQuote')}
               </h2>
               <p className="text-slate-600 mb-8">
-                Ready to get started? Fill out the form and we'll get back to you within 24 hours.
+                {t('contact', 'quoteDescription')}
               </p>
               
               <div className="space-y-4">
@@ -312,7 +322,7 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
             </div>
             
             <div className="bg-white border-2 border-slate-200 p-6 md:p-8 rounded-sm">
-              <ContactForm siteId={siteId} variant="classic" />
+              <ContactForm siteId={siteId} variant="classic" language={language} />
             </div>
           </div>
         </div>
@@ -325,11 +335,11 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
             <div>
               <h3 className="font-serif font-bold text-xl mb-4">{config.businessName}</h3>
               <p className="text-slate-400 text-sm">
-                {config.tagline || "Quality roofing services you can trust."}
+                {getLocalizedText(config.tagline, language) || t('footer', 'qualityRoofing')}
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
+              <h4 className="font-semibold mb-4">{t('footer', 'contact')}</h4>
               <div className="space-y-2 text-sm text-slate-400">
                 <p>{config.phone}</p>
                 {config.email && <p>{config.email}</p>}
@@ -337,14 +347,14 @@ export default function ClassicPro({ config, siteId, siteSlug, isPreview, blogs 
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Service Areas</h4>
+              <h4 className="font-semibold mb-4">{t('footer', 'servingAreas')}</h4>
               <p className="text-sm text-slate-400">
-                {config.serviceAreas?.join(", ") || "Contact us for service availability"}
+                {config.serviceAreas?.join(", ") || t('footer', 'contactForAvailability')}
               </p>
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-8 text-center text-sm text-slate-500">
-            © {new Date().getFullYear()} {config.businessName}. All rights reserved.
+            © {new Date().getFullYear()} {config.businessName}. {t('footer', 'allRightsReserved')}
           </div>
         </div>
       </footer>

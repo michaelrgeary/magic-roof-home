@@ -1,10 +1,12 @@
 import { Wrench, Home, Search, CloudLightning, LucideIcon } from "lucide-react";
+import { getLocalizedText, type Language, type LocalizedString } from "@/lib/i18n";
 
 interface ServiceCardProps {
-  name: string;
-  description: string;
+  name: string | LocalizedString;
+  description: string | LocalizedString;
   icon?: string;
   variant?: "classic" | "modern" | "trusted";
+  language?: Language;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -14,7 +16,7 @@ const iconMap: Record<string, LucideIcon> = {
   "cloud-lightning": CloudLightning,
 };
 
-export function ServiceCard({ name, description, icon, variant = "classic" }: ServiceCardProps) {
+export function ServiceCard({ name, description, icon, variant = "classic", language = "en" }: ServiceCardProps) {
   const IconComponent = icon ? iconMap[icon] || Wrench : Wrench;
 
   const cardStyles = {
@@ -52,8 +54,8 @@ export function ServiceCard({ name, description, icon, variant = "classic" }: Se
       <div className={iconWrapperStyles[variant]}>
         <IconComponent className={iconStyles[variant]} />
       </div>
-      <h3 className={titleStyles[variant]}>{name}</h3>
-      <p className={descStyles[variant]}>{description}</p>
+      <h3 className={titleStyles[variant]}>{getLocalizedText(name, language)}</h3>
+      <p className={descStyles[variant]}>{getLocalizedText(description, language)}</p>
     </div>
   );
 }
