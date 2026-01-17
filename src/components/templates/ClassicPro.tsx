@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, Shield, Award, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, Shield, Award, Clock, Star } from "lucide-react";
 import type { SiteConfig } from "./types";
 import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
@@ -220,9 +220,26 @@ export default function ClassicPro({ config, siteId, isPreview }: ClassicProProp
       {config.testimonials && config.testimonials.length > 0 && (
         <section className="bg-slate-100 py-16 md:py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4 text-center">
               What Our Customers Say
             </h2>
+            {/* Aggregate Rating */}
+            {config.testimonials.length > 0 && (() => {
+              const avg = config.testimonials.reduce((s, t) => s + t.rating, 0) / config.testimonials.length;
+              return (
+                <div className="flex items-center justify-center gap-3 mb-8">
+                  <span className="text-2xl font-bold text-slate-900">{avg.toFixed(1)}</span>
+                  <div className="flex flex-col items-start">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-amber-500 fill-amber-500" : "text-gray-300"}`} />
+                      ))}
+                    </div>
+                    <span className="text-sm text-slate-600">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {config.testimonials.map((testimonial, i) => (
                 <TestimonialCard

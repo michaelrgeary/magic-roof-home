@@ -3,12 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SiteChat } from "@/components/chat/SiteChat";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
 import { GalleryManager } from "@/components/gallery/GalleryManager";
+import { TestimonialManager, type Testimonial } from "@/components/testimonials/TestimonialManager";
 import { sampleConfig, type SiteConfig } from "@/components/templates/types";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSite, useSites } from "@/hooks/useSites";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, ArrowLeft, Check, Loader2, X, AlertCircle, MessageSquare, Image } from "lucide-react";
+import { Home, ArrowLeft, Check, Loader2, X, AlertCircle, MessageSquare, Image, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -33,7 +34,7 @@ export default function EditSite() {
   const [hasChanges, setHasChanges] = useState(false);
   const [changes, setChanges] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "gallery">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "gallery" | "reviews">("chat");
 
   // Load site data
   useEffect(() => {
@@ -160,8 +161,8 @@ export default function EditSite() {
       <div className="flex-1 flex flex-col lg:flex-row">
         {/* Edit side */}
         <div className="lg:w-[400px] xl:w-[480px] border-r flex flex-col h-[50vh] lg:h-[calc(100vh-57px)]">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "gallery")} className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-2 m-2" style={{ width: "calc(100% - 16px)" }}>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "gallery" | "reviews")} className="flex flex-col h-full">
+            <TabsList className="grid w-full grid-cols-3 m-2" style={{ width: "calc(100% - 16px)" }}>
               <TabsTrigger value="chat" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Chat
@@ -169,6 +170,10 @@ export default function EditSite() {
               <TabsTrigger value="gallery" className="gap-2">
                 <Image className="h-4 w-4" />
                 Gallery
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="gap-2">
+                <Star className="h-4 w-4" />
+                Reviews
               </TabsTrigger>
             </TabsList>
             
@@ -187,6 +192,13 @@ export default function EditSite() {
                 siteId={siteId!}
                 config={config}
                 onConfigChange={handleConfigUpdate}
+              />
+            </TabsContent>
+
+            <TabsContent value="reviews" className="flex-1 overflow-auto m-0 p-4">
+              <TestimonialManager
+                testimonials={(config.testimonials as Testimonial[]) || []}
+                onUpdate={(testimonials) => handleConfigUpdate({ testimonials })}
               />
             </TabsContent>
           </Tabs>
