@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.30.1";
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
   Deno.env.get("SITE_URL") || "http://localhost:5173",
   "https://id-preview--f09d1af7-7077-4ab0-88b7-9992a1e45830.lovable.app",
+  "https://magic-roof-shine.lovable.app",
 ];
 
 const getCorsHeaders = (origin: string | null) => ({
@@ -202,13 +204,14 @@ serve(async (req) => {
     }
 
     const { messages, mode, currentConfig } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!ANTHROPIC_API_KEY) {
+      console.error("ANTHROPIC_API_KEY is not configured");
+      throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
-    console.log("Processing chat request:", { mode, messageCount: messages.length });
+    console.log("Processing chat request:", { mode, messageCount: messages.length, userId });
 
     // Build system prompt based on mode
     let systemPrompt: string;
@@ -218,52 +221,83 @@ serve(async (req) => {
       systemPrompt = onboardingPrompt + configOutputInstructions;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        stream: true,
-      }),
+    // Initialize Anthropic client
+    const anthropic = new Anthropic({
+      apiKey: ANTHROPIC_API_KEY,
     });
 
-    if (!response.ok) {
-      console.error("AI gateway error:", response.status);
-      
-      if (response.status === 429) {
+    // Convert messages to Anthropic format (filter out system messages, they go in system param)
+    const anthropicMessages = messages
+      .filter((msg: { role: string }) => msg.role !== "system")
+      .map((msg: { role: string; content: string }) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content,
+      }));
+
+    console.log("Sending request to Anthropic with", anthropicMessages.length, "messages");
+
+    // Stream response from Claude
+    const stream = await anthropic.messages.stream({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: anthropicMessages,
+    });
+
+    // Create a readable stream to send SSE events
+    const encoder = new TextEncoder();
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of stream) {
+            if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+              const text = event.delta.text;
+              // Format as SSE event compatible with OpenAI format for frontend compatibility
+              const sseData = JSON.stringify({
+                choices: [{
+                  delta: { content: text }
+                }]
+              });
+              controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
+            }
+          }
+          // Send done signal
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        } catch (error) {
+          console.error("Streaming error:", error);
+          controller.error(error);
+        }
+      }
+    });
+
+    return new Response(readableStream, {
+      headers: { 
+        ...corsHeaders, 
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+      },
+    });
+  } catch (error) {
+    console.error("Chat function error:", error);
+    
+    // Handle specific Anthropic errors
+    if (error instanceof Error) {
+      if (error.message.includes("rate_limit") || error.message.includes("429")) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      if (response.status === 402) {
+      if (error.message.includes("authentication") || error.message.includes("401")) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "API authentication failed. Please check your API key." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      const errorText = await response.text();
-      console.error("Error details:", errorText);
-      return new Response(
-        JSON.stringify({ error: "Failed to get AI response" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
-
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-  } catch (error) {
-    console.error("Chat function error:", error);
+    
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
