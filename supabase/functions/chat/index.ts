@@ -44,6 +44,14 @@ COMMON EDIT REQUESTS:
 - Adding/removing service areas
 - Updating credentials or certifications
 - Changing what makes them different
+- Adding/editing testimonials and reviews
+
+TESTIMONIAL HANDLING:
+- When users ask to add a review/testimonial, gather: name, star rating (1-5), review text, and optionally location
+- Example: "Add a 5-star review from John Smith in Springfield saying 'Excellent work!'" 
+  → Creates: { "name": "John Smith", "rating": 5, "text": "Excellent work!", "location": "Springfield" }
+- Always include testimonials array in the updated config
+- Keep existing testimonials unless user asks to remove them
 
 GUIDELINES:
 - Reference their current values when relevant: "Your current tagline is 'X'. What would you like to change it to?"
@@ -76,6 +84,9 @@ Example output for NEW site:
   "credentials": [
     {"name": "Licensed Contractor", "number": "IL-12345"},
     {"name": "GAF Master Elite"}
+  ],
+  "testimonials": [
+    {"name": "John M.", "rating": 5, "text": "Excellent work on our roof!", "location": "Springfield"}
   ]
 }
 </site_config>
@@ -85,15 +96,15 @@ Example output for NEW site:
 - Set phone number
 - Added 2 services
 - Added 3 service areas
+- Added 1 testimonial
 </changes>
 
-Example output for EDIT:
+Example output for adding testimonial:
 <site_config>
-{...complete updated config...}
+{...complete updated config including new testimonial in testimonials array...}
 </site_config>
 <changes>
-- Changed tagline from "Quality You Can Trust" to "Roofing Done Right Since 1995"
-- Added "Storm Damage Repair" to services
+- Added 5-star review from John Smith: "They did amazing work on our roof!"
 </changes>
 
 Only output these blocks when you have made changes or gathered enough information.`;

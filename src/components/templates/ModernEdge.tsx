@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, ArrowRight, ChevronDown } from "lucide-react";
+import { Phone, Mail, MapPin, ArrowRight, ChevronDown, Star } from "lucide-react";
 import type { SiteConfig } from "./types";
 import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
@@ -230,9 +230,26 @@ export default function ModernEdge({ config, siteId, isPreview }: ModernEdgeProp
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
               Reviews
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">
               Client Feedback
             </h2>
+            {/* Aggregate Rating */}
+            {config.testimonials.length > 0 && (() => {
+              const avg = config.testimonials.reduce((s, t) => s + t.rating, 0) / config.testimonials.length;
+              return (
+                <div className="flex items-center justify-center gap-3 mb-12">
+                  <span className="text-2xl font-bold text-white">{avg.toFixed(1)}</span>
+                  <div className="flex flex-col items-start">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-cyan-400 fill-cyan-400" : "text-zinc-600"}`} />
+                      ))}
+                    </div>
+                    <span className="text-sm text-zinc-400">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {config.testimonials.map((testimonial, i) => (
                 <TestimonialCard

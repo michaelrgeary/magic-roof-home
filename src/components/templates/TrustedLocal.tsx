@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, Heart, Users, Award, Shield, Leaf } from "lucide-react";
+import { Phone, Mail, MapPin, Heart, Users, Award, Shield, Leaf, Star } from "lucide-react";
 import type { SiteConfig } from "./types";
 import { ContactForm } from "./sections/ContactForm";
 import { ClickToCall } from "./sections/ClickToCall";
@@ -110,13 +110,30 @@ export default function TrustedLocal({ config, siteId, isPreview }: TrustedLocal
       {config.testimonials && config.testimonials.length > 0 && (
         <section className="py-16 md:py-20 bg-white">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-4">
                 What Your Neighbors Are Saying
               </h2>
-              <p className="text-stone-600">
+              <p className="text-stone-600 mb-4">
                 Don't just take our word for it - hear from families just like yours
               </p>
+              {/* Aggregate Rating */}
+              {config.testimonials.length > 0 && (() => {
+                const avg = config.testimonials.reduce((s, t) => s + t.rating, 0) / config.testimonials.length;
+                return (
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-2xl font-bold text-stone-800">{avg.toFixed(1)}</span>
+                    <div className="flex flex-col items-start">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />
+                        ))}
+                      </div>
+                      <span className="text-sm text-stone-600">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {config.testimonials.map((testimonial, i) => (
