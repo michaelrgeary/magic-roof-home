@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { SiteConfig } from "./types";
+import type { Language } from "@/lib/i18n";
 
 // Lazy load templates for code splitting
 const ClassicPro = lazy(() => import("./ClassicPro"));
@@ -22,6 +23,7 @@ interface TemplateRendererProps {
   siteSlug?: string;
   isPreview?: boolean;
   blogs?: BlogPost[];
+  language?: Language;
 }
 
 function TemplateSkeleton() {
@@ -40,17 +42,17 @@ function TemplateSkeleton() {
   );
 }
 
-export function TemplateRenderer({ template, config, siteId, siteSlug, isPreview, blogs }: TemplateRendererProps) {
+export function TemplateRenderer({ template, config, siteId, siteSlug, isPreview, blogs, language = 'en' }: TemplateRendererProps) {
   const renderTemplate = () => {
     switch (template) {
       case "classic-pro":
-        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
+        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} language={language} />;
       case "modern-edge":
-        return <ModernEdge config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
+        return <ModernEdge config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} language={language} />;
       case "trusted-local":
-        return <TrustedLocal config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
+        return <TrustedLocal config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} language={language} />;
       default:
-        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} />;
+        return <ClassicPro config={config} siteId={siteId} siteSlug={siteSlug} isPreview={isPreview} blogs={blogs} language={language} />;
     }
   };
 

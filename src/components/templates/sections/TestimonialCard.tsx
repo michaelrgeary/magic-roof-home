@@ -1,14 +1,16 @@
 import { Star } from "lucide-react";
+import { getLocalizedText, type Language, type LocalizedString } from "@/lib/i18n";
 
 interface TestimonialCardProps {
   name: string;
-  text: string;
+  text: string | LocalizedString;
   rating: number;
   location?: string;
   variant?: "classic" | "modern" | "trusted";
+  language?: Language;
 }
 
-export function TestimonialCard({ name, text, rating, location, variant = "classic" }: TestimonialCardProps) {
+export function TestimonialCard({ name, text, rating, location, variant = "classic", language = "en" }: TestimonialCardProps) {
   const cardStyles = {
     classic: "bg-white border-2 border-slate-200 p-6 rounded-sm",
     modern: "bg-zinc-800 border border-zinc-700 p-6 rounded-none",
@@ -33,7 +35,7 @@ export function TestimonialCard({ name, text, rating, location, variant = "class
         ))}
       </div>
       <p className={`mb-4 italic ${variant === "modern" ? "text-zinc-300" : "text-gray-600"}`}>
-        "{text}"
+        "{getLocalizedText(text, language)}"
       </p>
       <div className={variant === "modern" ? "text-white" : "text-gray-900"}>
         <p className="font-semibold">{name}</p>

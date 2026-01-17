@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useSubmitLead } from "@/hooks/useLeads";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import type { Language } from "@/lib/i18n";
+import { getUITranslation } from "@/lib/translations";
 
 const formSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
@@ -19,9 +21,10 @@ interface ContactFormProps {
   siteId?: string;
   variant?: "classic" | "modern" | "trusted";
   source?: "quote_form" | "contact_form" | "chat";
+  language?: Language;
 }
 
-export function ContactForm({ siteId, variant = "classic", source = "quote_form" }: ContactFormProps) {
+export function ContactForm({ siteId, variant = "classic", source = "quote_form", language = "en" }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -48,7 +51,7 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
     }
 
     if (!siteId) {
-      toast.success("Form submitted successfully! (Demo mode)");
+      toast.success(getUITranslation(language, 'form', 'success'));
       setFormData({ name: "", phone: "", email: "", message: "" });
       return;
     }
@@ -86,12 +89,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name" className="text-sm font-medium">
-          Name *
+          {getUITranslation(language, 'form', 'name')} *
         </Label>
         <Input
           id="name"
           type="text"
-          placeholder="Your name"
+          placeholder={getUITranslation(language, 'form', 'yourName')}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className={`min-h-[44px] ${inputClasses[variant]} ${errors.name ? "border-red-500" : ""}`}
@@ -104,12 +107,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
 
       <div className="space-y-2">
         <Label htmlFor="phone" className="text-sm font-medium">
-          Phone *
+          {getUITranslation(language, 'form', 'phone')} *
         </Label>
         <Input
           id="phone"
           type="tel"
-          placeholder="(555) 123-4567"
+          placeholder={getUITranslation(language, 'form', 'phoneNumber')}
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className={`min-h-[44px] ${inputClasses[variant]} ${errors.phone ? "border-red-500" : ""}`}
@@ -122,12 +125,12 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
 
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium">
-          Email
+          {getUITranslation(language, 'form', 'email')}
         </Label>
         <Input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder={getUITranslation(language, 'form', 'emailPlaceholder')}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className={`min-h-[44px] ${inputClasses[variant]} ${errors.email ? "border-red-500" : ""}`}
@@ -140,11 +143,11 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
 
       <div className="space-y-2">
         <Label htmlFor="message" className="text-sm font-medium">
-          How can we help?
+          {getUITranslation(language, 'form', 'message')}
         </Label>
         <Textarea
           id="message"
-          placeholder="Tell us about your roofing needs..."
+          placeholder={getUITranslation(language, 'form', 'messagePlaceholder')}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           className={`min-h-[100px] ${inputClasses[variant]} ${errors.message ? "border-red-500" : ""}`}
@@ -163,10 +166,10 @@ export function ContactForm({ siteId, variant = "classic", source = "quote_form"
         {submitLead.isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Sending...
+            {getUITranslation(language, 'form', 'submitting')}
           </>
         ) : (
-          "Get Free Quote"
+          getUITranslation(language, 'form', 'submit')
         )}
       </Button>
     </form>

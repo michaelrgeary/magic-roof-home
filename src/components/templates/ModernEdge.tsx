@@ -6,6 +6,8 @@ import { TestimonialCard } from "./sections/TestimonialCard";
 import { ServiceCard } from "./sections/ServiceCard";
 import { BlogSection } from "./sections/BlogSection";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
+import { getLocalizedText, type Language } from "@/lib/i18n";
+import { getUITranslation } from "@/lib/translations";
 
 interface BlogPost {
   id: string;
@@ -22,9 +24,13 @@ interface ModernEdgeProps {
   siteSlug?: string;
   isPreview?: boolean;
   blogs?: BlogPost[];
+  language?: Language;
 }
 
-export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs }: ModernEdgeProps) {
+export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs, language = 'en' }: ModernEdgeProps) {
+  const t = (section: Parameters<typeof getUITranslation>[1], key: Parameters<typeof getUITranslation>[2]) => 
+    getUITranslation(language, section, key);
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* Header */}
@@ -46,7 +52,7 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
                 href="#contact"
                 className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2 font-bold uppercase text-sm tracking-wider transition-colors"
               >
-                Quote
+                {t('nav', 'quote')}
               </a>
             </div>
           </div>
@@ -64,27 +70,27 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold">
-              {config.tagline || "Premium Roofing Solutions"}
+              {getLocalizedText(config.tagline, language) || t('footer', 'qualityRoofing')}
             </p>
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight">
-              {config.heroHeadline || "Roofing Redefined"}
+              {getLocalizedText(config.heroHeadline, language) || t('sections', 'builtDifferent')}
             </h2>
             <p className="text-xl md:text-2xl text-zinc-400 mb-8 max-w-xl">
-              {config.heroSubheadline || "Modern solutions for lasting protection"}
+              {getLocalizedText(config.heroSubheadline, language) || t('footer', 'qualityRoofing')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="#contact"
                 className="inline-flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 text-black px-8 py-4 font-bold uppercase tracking-wider transition-all hover:translate-x-1"
               >
-                {config.heroCta || "Get Started"}
+                {getLocalizedText(config.heroCta, language) || t('hero', 'getStarted')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>
               <a
                 href="#services"
                 className="inline-flex items-center justify-center border border-zinc-700 hover:border-zinc-500 px-8 py-4 font-semibold uppercase tracking-wider transition-colors"
               >
-                Explore Services
+                {t('nav', 'exploreServices')}
               </a>
             </div>
           </div>
@@ -101,19 +107,19 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <p className="text-3xl md:text-4xl font-bold text-cyan-400">25+</p>
-              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">Years</p>
+              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">{t('badges', 'years')}</p>
             </div>
             <div>
               <p className="text-3xl md:text-4xl font-bold text-cyan-400">5000+</p>
-              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">Projects</p>
+              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">{t('badges', 'projects')}</p>
             </div>
             <div>
               <p className="text-3xl md:text-4xl font-bold text-cyan-400">100%</p>
-              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">Satisfaction</p>
+              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">{t('badges', 'satisfaction')}</p>
             </div>
             <div>
               <p className="text-3xl md:text-4xl font-bold text-cyan-400">24/7</p>
-              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">Emergency</p>
+              <p className="text-zinc-500 uppercase text-sm tracking-wider mt-1">{t('badges', 'emergency')}</p>
             </div>
           </div>
         </div>
@@ -124,10 +130,10 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <div className="container mx-auto px-4">
           <div className="mb-16">
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold">
-              What We Do
+              {t('sections', 'whatWeDo')}
             </p>
             <h2 className="text-3xl md:text-4xl font-bold">
-              Our Services
+              {t('sections', 'ourServices')}
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -138,6 +144,7 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
                 description={service.description}
                 icon={service.icon}
                 variant="modern"
+                language={language}
               />
             ))}
           </div>
@@ -153,10 +160,10 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
             </div>
             <div>
               <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold">
-                About Us
+                {t('sections', 'aboutUs')}
               </p>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Built Different
+                {t('sections', 'builtDifferent')}
               </h2>
               {config.yearEstablished && (
                 <p className="text-2xl text-zinc-400 mb-4">
@@ -164,13 +171,13 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
                 </p>
               )}
               <p className="text-zinc-400 leading-relaxed mb-8">
-                {config.about || "We bring innovation and precision to every roofing project."}
+                {getLocalizedText(config.about, language) || t('footer', 'qualityRoofing')}
               </p>
               <a
                 href="#contact"
                 className="inline-flex items-center text-cyan-400 font-semibold uppercase tracking-wider hover:text-cyan-300 transition-colors"
               >
-                Start Your Project
+                {t('cta', 'startYourProject')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>
             </div>
@@ -183,10 +190,10 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <section className="py-20 md:py-28 border-t border-zinc-800">
           <div className="container mx-auto px-4">
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
-              Coverage
+              {t('sections', 'coverage')}
             </p>
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-              Service Areas
+              {t('sections', 'serviceAreas')}
             </h2>
             <div className="flex flex-wrap justify-center gap-4">
               {config.serviceAreas.map((area, i) => (
@@ -225,10 +232,10 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <section className="py-20 md:py-28">
           <div className="container mx-auto px-4">
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
-              Portfolio
+              {t('sections', 'portfolio')}
             </p>
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-              Recent Work
+              {t('sections', 'recentWork')}
             </h2>
             <TemplateGallery items={config.gallery} variant="modern" />
           </div>
@@ -240,10 +247,10 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <section className="py-20 md:py-28 bg-zinc-900">
           <div className="container mx-auto px-4">
             <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold text-center">
-              Reviews
+              {t('sections', 'reviews')}
             </p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">
-              Client Feedback
+              {t('sections', 'clientFeedback')}
             </h2>
             {/* Aggregate Rating */}
             {config.testimonials.length > 0 && (() => {
@@ -257,7 +264,9 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
                         <Star key={i} className={`h-5 w-5 ${i < Math.round(avg) ? "text-cyan-400 fill-cyan-400" : "text-zinc-600"}`} />
                       ))}
                     </div>
-                    <span className="text-sm text-zinc-400">Based on {config.testimonials.length} review{config.testimonials.length !== 1 ? "s" : ""}</span>
+                    <span className="text-sm text-zinc-400">
+                      {t('sections', 'basedOnReviews')} {config.testimonials.length} {config.testimonials.length !== 1 ? t('sections', 'reviews_plural') : t('sections', 'review')}
+                    </span>
                   </div>
                 </div>
               );
@@ -271,6 +280,7 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
                   rating={testimonial.rating}
                   location={testimonial.location}
                   variant="modern"
+                  language={language}
                 />
               ))}
             </div>
@@ -289,13 +299,13 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
           <div className="grid md:grid-cols-2 gap-12">
             <div>
               <p className="text-cyan-400 uppercase tracking-[0.2em] text-sm mb-4 font-semibold">
-                Get In Touch
+                {t('contact', 'getInTouch')}
               </p>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Start Your Project
+                {t('cta', 'startYourProject')}
               </h2>
               <p className="text-zinc-400 mb-8">
-                Ready to transform your roof? Get in touch for a free consultation.
+                {t('contact', 'contactDescription')}
               </p>
               
               <div className="space-y-4">
@@ -325,7 +335,7 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
             </div>
             
             <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8">
-              <ContactForm siteId={siteId} variant="modern" />
+              <ContactForm siteId={siteId} variant="modern" language={language} />
             </div>
           </div>
         </div>
@@ -336,11 +346,11 @@ export default function ModernEdge({ config, siteId, siteSlug, isPreview, blogs 
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-zinc-500 text-sm">
-              © {new Date().getFullYear()} {config.businessName}. All rights reserved.
+              © {new Date().getFullYear()} {config.businessName}. {t('footer', 'allRightsReserved')}
             </p>
             <div className="flex items-center gap-6 text-sm text-zinc-500">
-              <a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-cyan-400 transition-colors">Terms</a>
+              <a href="#" className="hover:text-cyan-400 transition-colors">{t('footer', 'privacy')}</a>
+              <a href="#" className="hover:text-cyan-400 transition-colors">{t('footer', 'terms')}</a>
             </div>
           </div>
         </div>
