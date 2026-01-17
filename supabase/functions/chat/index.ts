@@ -70,7 +70,27 @@ GUIDELINES:
 - If they give partial answers, ask follow-up questions
 - If they want to skip something, that's okay, move on
 - Keep responses SHORT - 1-2 sentences max
-- Don't be robotic or use bullet points`;
+- Don't be robotic or use bullet points
+
+BILINGUAL CONTENT GENERATION:
+When generating the final site JSON, create ALL text content in BOTH English and Spanish using this structure:
+- Company names, phone numbers, addresses, and proper nouns stay unchanged
+- All other text fields use { "en": "English text", "es": "Spanish text" } format
+
+Spanish Translation Guidelines:
+- Use neutral Latin American Spanish
+- Common roofing terms:
+  - Roof = Techo
+  - Roofing = Techado
+  - Shingles = Tejas
+  - Gutters = Canaletas
+  - Storm damage = Daño por tormentas
+  - Leak = Goteras
+  - Inspection = Inspección
+  - Free estimate/quote = Cotización gratis
+  - Licensed & Insured = Licenciado y Asegurado
+  - Repairs = Reparaciones
+  - New installation = Nueva instalación`;
 
 const editPrompt = `You are a friendly assistant helping a roofing contractor edit their existing website. You have access to their current site configuration.
 
@@ -95,7 +115,7 @@ COMMON EDIT REQUESTS:
 TESTIMONIAL HANDLING:
 - When users ask to add a review/testimonial, gather: name, star rating (1-5), review text, and optionally location
 - Example: "Add a 5-star review from John Smith in Springfield saying 'Excellent work!'" 
-  → Creates: { "name": "John Smith", "rating": 5, "text": "Excellent work!", "location": "Springfield" }
+  → Creates bilingual testimonial: { "name": "John Smith", "rating": 5, "text": { "en": "Excellent work!", "es": "¡Excelente trabajo!" }, "location": "Springfield" }
 - Always include testimonials array in the updated config
 - Keep existing testimonials unless user asks to remove them
 
@@ -106,51 +126,94 @@ GUIDELINES:
 - Ask clarifying questions if the request is unclear
 - When they're done, confirm the changes made
 
-IMPORTANT: After understanding what they want to change, output the COMPLETE updated config (not just changes) in the site_config block.`;
+BILINGUAL CONTENT:
+- ALL text content must be in BOTH English and Spanish using { "en": "...", "es": "..." } format
+- Company names, phone numbers, addresses, and proper nouns stay unchanged
+- Spanish Translation Guidelines:
+  - Use neutral Latin American Spanish
+  - Roof = Techo, Roofing = Techado, Shingles = Tejas, Gutters = Canaletas
+  - Storm damage = Daño por tormentas, Leak = Goteras, Inspection = Inspección
+  - Free estimate/quote = Cotización gratis, Licensed & Insured = Licenciado y Asegurado
+
+IMPORTANT: After understanding what they want to change, output the COMPLETE updated config (not just changes) in the site_config block with ALL text fields in bilingual format.`;
 
 const configOutputInstructions = `
 
 After gathering enough info OR making edits, output a JSON block wrapped in <site_config> tags with the complete config. Also output a <changes> block listing what was added/changed.
 
-Example output for NEW site:
+IMPORTANT: Generate ALL text content in BOTH English and Spanish using the bilingual format shown below.
+
+Example output for NEW site with BILINGUAL content:
 <site_config>
 {
   "businessName": "ABC Roofing",
-  "tagline": "Quality You Can Trust",
+  "tagline": {
+    "en": "Quality You Can Trust",
+    "es": "Calidad en la que Puedes Confiar"
+  },
   "phone": "(555) 123-4567",
-  "heroHeadline": "Expert Roofing Services in Springfield",
-  "heroSubheadline": "Family-owned since 2005, serving Central Illinois with quality craftsmanship",
+  "heroHeadline": {
+    "en": "Expert Roofing Services in Springfield",
+    "es": "Servicios Expertos de Techado en Springfield"
+  },
+  "heroSubheadline": {
+    "en": "Family-owned since 2005, serving Central Illinois with quality craftsmanship",
+    "es": "Empresa familiar desde 2005, sirviendo el centro de Illinois con artesanía de calidad"
+  },
+  "heroCta": {
+    "en": "Get Your Free Quote",
+    "es": "Obtén Tu Cotización Gratis"
+  },
   "yearEstablished": "2005",
   "services": [
-    {"name": "Roof Repairs", "description": "Fast, reliable leak and damage repairs", "icon": "wrench"},
-    {"name": "New Installation", "description": "Complete roof replacement with premium materials", "icon": "home"}
+    {
+      "name": { "en": "Roof Repairs", "es": "Reparación de Techos" },
+      "description": { "en": "Fast, reliable leak and damage repairs", "es": "Reparaciones rápidas y confiables de goteras y daños" },
+      "icon": "wrench"
+    },
+    {
+      "name": { "en": "New Installation", "es": "Nueva Instalación" },
+      "description": { "en": "Complete roof replacement with premium materials", "es": "Reemplazo completo de techo con materiales premium" },
+      "icon": "home"
+    }
   ],
   "serviceAreas": ["Springfield", "Chatham", "Rochester"],
-  "about": "We are a family-owned roofing company...",
+  "about": {
+    "en": "We are a family-owned roofing company with over 15 years of experience...",
+    "es": "Somos una empresa familiar de techado con más de 15 años de experiencia..."
+  },
   "credentials": [
     {"name": "Licensed Contractor", "number": "IL-12345"},
     {"name": "GAF Master Elite"}
   ],
   "testimonials": [
-    {"name": "John M.", "rating": 5, "text": "Excellent work on our roof!", "location": "Springfield"}
+    {
+      "name": "John M.",
+      "rating": 5,
+      "text": {
+        "en": "Excellent work on our roof!",
+        "es": "¡Excelente trabajo en nuestro techo!"
+      },
+      "location": "Springfield"
+    }
   ]
 }
 </site_config>
 <changes>
 - Set company name to "ABC Roofing"
-- Added tagline
+- Added bilingual tagline (EN/ES)
 - Set phone number
-- Added 2 services
+- Added 2 bilingual services
 - Added 3 service areas
-- Added 1 testimonial
+- Added 1 bilingual testimonial
 </changes>
 
 Example output for adding testimonial:
 <site_config>
-{...complete updated config including new testimonial in testimonials array...}
+{...complete updated config including new testimonial with bilingual text in testimonials array...}
 </site_config>
 <changes>
-- Added 5-star review from John Smith: "They did amazing work on our roof!"
+- Added 5-star bilingual review from John Smith
 </changes>
 
 Only output these blocks when you have made changes or gathered enough information.`;
